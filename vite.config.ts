@@ -223,7 +223,12 @@ export default defineConfig({
     __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV || 'development'),
     __VERCEL_URL__: JSON.stringify(process.env.VERCEL_URL || 'localhost'),
     global: 'globalThis',
-    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+    // Ensure fetch APIs are always defined to prevent destructuring errors
+    'typeof fetch': JSON.stringify('function'),
+    'typeof Request': JSON.stringify('function'),
+    'typeof Response': JSON.stringify('function'),
+    'typeof Headers': JSON.stringify('function')
   },
   // Vercel deployment settings
   clearScreen: false,
@@ -233,5 +238,12 @@ export default defineConfig({
     port: 3000,
     host: true,
     strictPort: false
+  },
+  // ESBuild options for better compatibility
+  esbuild: {
+    target: 'es2020',
+    supported: {
+      'top-level-await': false
+    }
   }
 });

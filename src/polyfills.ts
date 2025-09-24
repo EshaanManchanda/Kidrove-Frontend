@@ -1,6 +1,7 @@
 // Polyfills for older browsers and environments
 
 // Import whatwg-fetch polyfill for Request/Response APIs
+// Note: This is a backup - primary polyfills are loaded via index.html
 import 'whatwg-fetch';
 
 // Safe console logging for polyfill status

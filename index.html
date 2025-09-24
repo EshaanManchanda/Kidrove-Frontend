@@ -89,6 +89,92 @@
       ]
     }
     </script>
+
+    <!-- Critical Polyfills - Must load before any other JavaScript -->
+    <script>
+      // Ensure console is available for polyfill logging
+      if (typeof console === 'undefined') {
+        window.console = { log: function() {}, warn: function() {}, error: function() {} };
+      }
+
+      // Feature detection and polyfill setup
+      window.__POLYFILL_STATUS__ = {
+        fetch: typeof fetch !== 'undefined',
+        request: typeof Request !== 'undefined',
+        response: typeof Response !== 'undefined',
+        headers: typeof Headers !== 'undefined'
+      };
+
+      console.log('[Polyfills] Initial feature detection:', window.__POLYFILL_STATUS__);
+
+      // Global polyfill fallbacks - ensure these are never undefined
+      if (typeof globalThis !== 'undefined') {
+        // Provide safe fallbacks to prevent destructuring errors
+        if (typeof globalThis.Request === 'undefined') {
+          globalThis.Request = function Request(input, init) {
+            console.warn('[Polyfill] Request constructor called but not available');
+            throw new Error('Request API not available - polyfill loading failed');
+          };
+        }
+        if (typeof globalThis.Response === 'undefined') {
+          globalThis.Response = function Response(body, init) {
+            console.warn('[Polyfill] Response constructor called but not available');
+            throw new Error('Response API not available - polyfill loading failed');
+          };
+        }
+        if (typeof globalThis.Headers === 'undefined') {
+          globalThis.Headers = function Headers(init) {
+            console.warn('[Polyfill] Headers constructor called but not available');
+            throw new Error('Headers API not available - polyfill loading failed');
+          };
+        }
+        if (typeof globalThis.fetch === 'undefined') {
+          globalThis.fetch = function fetch(input, init) {
+            console.warn('[Polyfill] fetch called but not available');
+            throw new Error('Fetch API not available - polyfill loading failed');
+          };
+        }
+      }
+    </script>
+
+    <!-- Load fetch polyfill via CDN for maximum compatibility -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=fetch%2CRequest%2CResponse%2CHeaders" crossorigin="anonymous"></script>
+
+    <!-- Verify polyfills loaded correctly -->
+    <script>
+      // Update status after polyfill loading
+      window.__POLYFILL_STATUS__ = {
+        fetch: typeof fetch !== 'undefined',
+        request: typeof Request !== 'undefined',
+        response: typeof Response !== 'undefined',
+        headers: typeof Headers !== 'undefined'
+      };
+
+      console.log('[Polyfills] Post-load feature detection:', window.__POLYFILL_STATUS__);
+
+      // Ensure all APIs are available globally
+      if (typeof globalThis !== 'undefined') {
+        ['fetch', 'Request', 'Response', 'Headers'].forEach(function(api) {
+          if (typeof window[api] !== 'undefined' && typeof globalThis[api] === 'undefined') {
+            globalThis[api] = window[api];
+            console.log('[Polyfills] Set ' + api + ' on globalThis');
+          }
+        });
+      }
+
+      // Final verification
+      var missingApis = [];
+      if (typeof fetch === 'undefined') missingApis.push('fetch');
+      if (typeof Request === 'undefined') missingApis.push('Request');
+      if (typeof Response === 'undefined') missingApis.push('Response');
+      if (typeof Headers === 'undefined') missingApis.push('Headers');
+
+      if (missingApis.length > 0) {
+        console.error('[Polyfills] CRITICAL: Missing APIs after polyfill loading:', missingApis);
+      } else {
+        console.log('[Polyfills] SUCCESS: All fetch APIs are available');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
