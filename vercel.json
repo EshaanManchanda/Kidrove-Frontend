@@ -3,7 +3,7 @@
   "name": "gema-frontend",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "installCommand": "npm ci --production=false",
+  "installCommand": "npm install --include=dev",
   "framework": "vite",
   "regions": ["iad1"],
   "build": {
