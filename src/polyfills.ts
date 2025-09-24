@@ -1,7 +1,7 @@
 // Polyfills for older browsers and environments
 
 // Import whatwg-fetch polyfill for Request/Response APIs
-// Note: This is a backup - primary polyfills are loaded via index.html
+// This is now the PRIMARY polyfill source (no CDN dependency)
 import 'whatwg-fetch';
 
 // Safe console logging for polyfill status
@@ -20,79 +20,76 @@ const hasFeature = (obj: any, prop: string): boolean => {
   }
 };
 
-// Ensure global fetch, Request, Response, and Headers are available
+// Initialize polyfills and update status
 try {
+  polyfillLog('Loading local whatwg-fetch polyfills...');
+
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
-    // Fetch API polyfills
-    if (!hasFeature(window, 'fetch')) {
-      polyfillLog('Fetch API not available, using polyfill', 'warn');
+    // Update polyfill status after local loading
+    const polyfillStatus = {
+      fetch: hasFeature(window, 'fetch'),
+      request: hasFeature(window, 'Request'),
+      response: hasFeature(window, 'Response'),
+      headers: hasFeature(window, 'Headers'),
+      source: 'bundled' // Mark as bundled polyfills
+    };
+
+    // Update global status
+    if ((window as any).__POLYFILL_STATUS__) {
+      (window as any).__POLYFILL_STATUS__ = polyfillStatus;
     }
 
-    if (!hasFeature(window, 'Request')) {
-      polyfillLog('Request API not available, using polyfill', 'warn');
-    }
+    polyfillLog('Post-bundle polyfill status:', polyfillStatus);
 
-    if (!hasFeature(window, 'Response')) {
-      polyfillLog('Response API not available, using polyfill', 'warn');
-    }
-
-    if (!hasFeature(window, 'Headers')) {
-      polyfillLog('Headers API not available, using polyfill', 'warn');
-    }
-
-    // Apply global fixes if needed
+    // Ensure globalThis has all APIs
     if (typeof globalThis !== 'undefined') {
-      // Modern environments - ensure globalThis has required APIs
       ['fetch', 'Request', 'Response', 'Headers'].forEach(api => {
-        if (!hasFeature(globalThis, api) && hasFeature(window, api)) {
-          try {
-            (globalThis as any)[api] = (window as any)[api];
-          } catch (e) {
-            polyfillLog(`Failed to set ${api} on globalThis: ${e}`, 'error');
+        if (hasFeature(window, api)) {
+          if (!hasFeature(globalThis, api)) {
+            try {
+              (globalThis as any)[api] = (window as any)[api];
+              polyfillLog(`Set ${api} on globalThis from bundled polyfill`);
+            } catch (e) {
+              polyfillLog(`Failed to set ${api} on globalThis: ${e}`, 'error');
+            }
           }
+        } else {
+          polyfillLog(`${api} not available even after polyfill loading`, 'error');
         }
       });
     }
 
-    // Additional Web API checks and polyfills
+    // Additional Web API polyfills
     if (!hasFeature(window, 'URL') && hasFeature(window, 'webkitURL')) {
       try {
         (window as any).URL = (window as any).webkitURL;
-        polyfillLog('Using webkitURL as URL polyfill');
+        polyfillLog('Applied webkitURL polyfill');
       } catch (e) {
-        polyfillLog(`Failed to set URL polyfill: ${e}`, 'error');
+        polyfillLog(`Failed to apply URL polyfill: ${e}`, 'error');
       }
     }
 
-    // AbortController check
+    // Feature availability warnings
     if (!hasFeature(window, 'AbortController')) {
       polyfillLog('AbortController not available - some fetch operations may not be cancellable', 'warn');
     }
 
-    // Promise check (should be available in modern environments)
-    if (!hasFeature(window, 'Promise')) {
-      polyfillLog('Promise not available - application may not work correctly', 'error');
-    }
+    // Final verification
+    const missingApis = [];
+    if (!hasFeature(window, 'fetch')) missingApis.push('fetch');
+    if (!hasFeature(window, 'Request')) missingApis.push('Request');
+    if (!hasFeature(window, 'Response')) missingApis.push('Response');
+    if (!hasFeature(window, 'Headers')) missingApis.push('Headers');
 
-    // Array methods check
-    if (!Array.prototype.find) {
-      polyfillLog('Array.prototype.find not available', 'warn');
+    if (missingApis.length > 0) {
+      polyfillLog(`CRITICAL: Missing APIs after local polyfill loading: ${missingApis.join(', ')}`, 'error');
+    } else {
+      polyfillLog('SUCCESS: All fetch APIs available via local polyfills');
     }
-
-    if (!Array.prototype.includes) {
-      polyfillLog('Array.prototype.includes not available', 'warn');
-    }
-
-    // Object methods check
-    if (!Object.assign) {
-      polyfillLog('Object.assign not available', 'warn');
-    }
-
-    polyfillLog('Polyfill initialization complete');
   }
 } catch (error) {
-  polyfillLog(`Error during polyfill initialization: ${error}`, 'error');
+  polyfillLog(`Error during local polyfill initialization: ${error}`, 'error');
 }
 
 // Export feature detection utilities for use in components
