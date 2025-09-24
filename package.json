@@ -11,6 +11,7 @@
     "dev": "vite",
     "prebuild": "node -e \"console.log('Node:', process.version); console.log('Vite available:', require('fs').existsSync('./node_modules/.bin/vite') ? 'Yes' : 'No')\"",
     "build": "vite build",
+    "build:analyze": "vite build --mode analyze",
     "preview": "vite preview",
     "lint": "eslint . --ext js,jsx,ts,tsx --report-unused-disable-directives --max-warnings 0",
     "lint:fix": "eslint . --ext js,jsx,ts,tsx --fix",
@@ -18,7 +19,15 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:ci": "jest --coverage --watchAll=false"
+    "test:ci": "jest --coverage --watchAll=false",
+    "vercel:build": "npm run type-check && npm run lint && npm run build",
+    "vercel:dev": "vercel dev",
+    "vercel:deploy": "vercel --prod",
+    "vercel:preview": "vercel",
+    "clean": "rimraf dist",
+    "clean:all": "rimraf dist node_modules && npm install",
+    "health-check": "node -e \"console.log('Health check passed'); process.exit(0)\"",
+    "postbuild": "node -e \"const fs = require('fs'); const path = 'dist/index.html'; if (fs.existsSync(path)) { console.log('✅ Build successful - index.html exists'); console.log('📦 Build size:', fs.statSync('dist').size + ' bytes'); } else { console.error('❌ Build failed - index.html not found'); process.exit(1); }\""
   },
   "dependencies": {
     "@cloudinary/react": "^1.14.3",

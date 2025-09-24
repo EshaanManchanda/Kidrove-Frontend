@@ -9,29 +9,62 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
+      includeAssets: ['favicon.ico', 'apple-touch-icon.svg', 'robots.txt'],
       manifest: {
-        name: 'KidzApp Clone',
-        short_name: 'KidzApp',
-        description: 'Discover and book amazing kids activities',
+        name: 'Gema - Event Management Platform',
+        short_name: 'Gema',
+        description: 'Discover and book amazing events in your area',
         theme_color: '#3B82F6',
         background_color: '#ffffff',
         display: 'standalone',
+        orientation: 'portrait',
+        scope: '/',
+        start_url: '/',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'icon-192x192.svg',
             sizes: '192x192',
-            type: 'image/png'
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'icon-512x512.svg',
             sizes: '512x512',
-            type: 'image/png'
+            type: 'image/svg+xml',
+            purpose: 'any maskable'
           }
         ]
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg}']
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+        runtimeCaching: [
+          {
+            urlPattern: /^https:\/\/gema-project\.onrender\.com\/api\/.*/,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 5 // 5 minutes
+              },
+              networkTimeoutSeconds: 10
+            }
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'image-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              }
+            }
+          }
+        ]
+      },
+      devOptions: {
+        enabled: false
       }
     })
   ],
@@ -73,11 +106,14 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: false,
-    target: 'es2015',
+    sourcemap: process.env.NODE_ENV === 'development',
+    target: ['es2020', 'chrome80', 'safari13', 'firefox78'],
     minify: 'esbuild',
     // Force fresh build - disable caching
     emptyOutDir: true,
+    // Vercel optimizations
+    reportCompressedSize: false,
+    cssCodeSplit: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -145,10 +181,17 @@ export default defineConfig({
         }
       }
     },
-    chunkSizeWarningLimit: 500,
-    assetsInlineLimit: 4096,
+    chunkSizeWarningLimit: 1000,
+    assetsInlineLimit: 8192,
     commonjsOptions: {
       include: [/firebase/, /node_modules/]
+    },
+    // Vercel-specific optimizations
+    terserOptions: {
+      compress: {
+        drop_console: process.env.NODE_ENV === 'production',
+        drop_debugger: process.env.NODE_ENV === 'production'
+      }
     }
   },
   optimizeDeps: {
@@ -174,8 +217,18 @@ export default defineConfig({
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
     __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
-    __CACHE_BUST__: JSON.stringify(Date.now().toString(36))
+    __CACHE_BUST__: JSON.stringify(Date.now().toString(36)),
+    __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV || 'development'),
+    __VERCEL_URL__: JSON.stringify(process.env.VERCEL_URL || 'localhost'),
+    global: 'globalThis'
   },
-  // Force Vercel to do fresh build
-  clearScreen: false
+  // Vercel deployment settings
+  clearScreen: false,
+  logLevel: process.env.NODE_ENV === 'production' ? 'error' : 'info',
+  // Preview mode optimizations
+  preview: {
+    port: 3000,
+    host: true,
+    strictPort: false
+  }
 });
