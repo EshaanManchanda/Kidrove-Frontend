@@ -129,6 +129,7 @@ export default defineConfig({
         if (id.includes('node:') ||
             id.includes('undici') ||
             id.includes('node-fetch') ||
+            id.includes('perf_hooks') ||
             id.startsWith('fs') ||
             id.startsWith('path') ||
             id.startsWith('http') ||
