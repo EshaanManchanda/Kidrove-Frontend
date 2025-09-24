@@ -211,8 +211,10 @@ export default defineConfig({
       'lodash',
       '@tanstack/react-query',
       'react-hook-form',
+      'whatwg-fetch'
     ],
-    exclude: ['@zxing/library']
+    exclude: ['@zxing/library'],
+    force: true
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),
@@ -220,7 +222,8 @@ export default defineConfig({
     __CACHE_BUST__: JSON.stringify(Date.now().toString(36)),
     __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV || 'development'),
     __VERCEL_URL__: JSON.stringify(process.env.VERCEL_URL || 'localhost'),
-    global: 'globalThis'
+    global: 'globalThis',
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development')
   },
   // Vercel deployment settings
   clearScreen: false,
