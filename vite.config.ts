@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -66,6 +67,13 @@ export default defineConfig({
       devOptions: {
         enabled: false
       }
+    }),
+    // Bundle analyzer (only in analyze mode)
+    process.env.ANALYZE && visualizer({
+      filename: 'dist/stats.html',
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
     })
   ],
   resolve: {
@@ -115,6 +123,23 @@ export default defineConfig({
     reportCompressedSize: false,
     cssCodeSplit: true,
     rollupOptions: {
+      // Prevent Node.js modules from being bundled for client
+      external: (id) => {
+        // Exclude Node.js built-ins and server-only packages
+        if (id.includes('node:') ||
+            id.includes('undici') ||
+            id.includes('node-fetch') ||
+            id.startsWith('fs') ||
+            id.startsWith('path') ||
+            id.startsWith('http') ||
+            id.startsWith('https') ||
+            id.startsWith('url') ||
+            id.startsWith('crypto') && !id.includes('crypto-js')) {
+          console.warn(`[Vite] Excluding Node.js module from bundle: ${id}`);
+          return true;
+        }
+        return false;
+      },
       output: {
         manualChunks: {
           // Core React
@@ -228,7 +253,11 @@ export default defineConfig({
     'typeof fetch': JSON.stringify('function'),
     'typeof Request': JSON.stringify('function'),
     'typeof Response': JSON.stringify('function'),
-    'typeof Headers': JSON.stringify('function')
+    'typeof Headers': JSON.stringify('function'),
+    // Prevent Node.js globals from being undefined
+    'process.env': '{}',
+    'process.platform': JSON.stringify('browser'),
+    'process.version': JSON.stringify('v18.0.0')
   },
   // Vercel deployment settings
   clearScreen: false,
