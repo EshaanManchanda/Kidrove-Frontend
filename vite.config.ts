@@ -143,12 +143,15 @@ export default defineConfig({
       },
       output: {
         manualChunks: {
+          // Polyfills FIRST - loaded before other chunks
+          polyfills: ['whatwg-fetch'],
+
           // Core React
           vendor: ['react', 'react-dom'],
-          
+
           // Routing
           router: ['react-router-dom'],
-          
+
           // State Management
           state: ['@reduxjs/toolkit', 'react-redux', 'redux-persist'],
           
@@ -222,6 +225,8 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
+      // Include whatwg-fetch FIRST to ensure polyfills are available early
+      'whatwg-fetch',
       'react',
       'react-dom',
       'react-router-dom',
@@ -236,8 +241,7 @@ export default defineConfig({
       'clsx',
       'lodash',
       '@tanstack/react-query',
-      'react-hook-form',
-      'whatwg-fetch'
+      'react-hook-form'
     ],
     exclude: ['@zxing/library'],
     force: true
@@ -250,11 +254,7 @@ export default defineConfig({
     __VERCEL_URL__: JSON.stringify(process.env.VERCEL_URL || 'localhost'),
     global: 'globalThis',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
-    // Ensure fetch APIs are always defined to prevent destructuring errors
-    'typeof fetch': JSON.stringify('function'),
-    'typeof Request': JSON.stringify('function'),
-    'typeof Response': JSON.stringify('function'),
-    'typeof Headers': JSON.stringify('function'),
+    // Remove conflicting typeof definitions - let polyfills handle them naturally
     // Prevent Node.js globals from being undefined
     'process.env': '{}',
     'process.platform': JSON.stringify('browser'),

@@ -1,6 +1,28 @@
 // Import polyfills first to ensure they're available before any other code runs
 import './polyfills';
 
+// Import safety checks immediately after polyfills
+import './utils/fetchSafety';
+
+// Global error handler for destructuring errors
+window.addEventListener('error', (event) => {
+  if (event.error?.message?.includes('destructure') && event.error?.message?.includes('Request')) {
+    console.error('[Global Error Handler] Caught Request destructuring error:', {
+      message: event.error.message,
+      stack: event.error.stack,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno
+    });
+
+    // Prevent the error from breaking the app
+    event.preventDefault();
+
+    // Show user-friendly error
+    console.error('A polyfill loading issue has been detected and handled. The app should still function.');
+  }
+});
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';

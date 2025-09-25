@@ -1,8 +1,18 @@
 // Polyfills for older browsers and environments
 
-// Import whatwg-fetch polyfill for Request/Response APIs
-// This is now the PRIMARY polyfill source (no CDN dependency)
+// Import whatwg-fetch polyfill for Request/Response APIs FIRST
+// This is the PRIMARY polyfill source (no CDN dependency)
 import 'whatwg-fetch';
+
+// Ensure fetch APIs are available globally before any other code runs
+declare global {
+  interface Window {
+    fetch: typeof fetch;
+    Request: typeof Request;
+    Response: typeof Response;
+    Headers: typeof Headers;
+  }
+}
 
 // Safe console logging for polyfill status
 const polyfillLog = (message: string, level: 'log' | 'warn' | 'error' = 'log') => {
@@ -20,9 +30,47 @@ const hasFeature = (obj: any, prop: string): boolean => {
   }
 };
 
+// Force polyfill APIs into global scope to prevent destructuring errors
+const ensureGlobalAPIs = () => {
+  if (typeof globalThis !== 'undefined') {
+    // Ensure all fetch APIs are available on globalThis
+    if (typeof fetch !== 'undefined' && !globalThis.fetch) {
+      globalThis.fetch = fetch;
+    }
+    if (typeof Request !== 'undefined' && !globalThis.Request) {
+      globalThis.Request = Request;
+    }
+    if (typeof Response !== 'undefined' && !globalThis.Response) {
+      globalThis.Response = Response;
+    }
+    if (typeof Headers !== 'undefined' && !globalThis.Headers) {
+      globalThis.Headers = Headers;
+    }
+  }
+
+  // Also ensure on window object
+  if (typeof window !== 'undefined') {
+    if (typeof fetch !== 'undefined' && !window.fetch) {
+      window.fetch = fetch;
+    }
+    if (typeof Request !== 'undefined' && !window.Request) {
+      window.Request = Request;
+    }
+    if (typeof Response !== 'undefined' && !window.Response) {
+      window.Response = Response;
+    }
+    if (typeof Headers !== 'undefined' && !window.Headers) {
+      window.Headers = Headers;
+    }
+  }
+};
+
 // Initialize polyfills and update status
 try {
   polyfillLog('Loading local whatwg-fetch polyfills...');
+
+  // Ensure APIs are available immediately after import
+  ensureGlobalAPIs();
 
   // Check if we're in a browser environment
   if (typeof window !== 'undefined') {
@@ -115,6 +163,33 @@ export const safeFetch = async (input: RequestInfo | URL, init?: RequestInit) =>
     console.error('[SafeFetch] Request failed:', error);
     throw error;
   }
+};
+
+// Export safe references to prevent destructuring from undefined
+export const FetchPolyfills = {
+  fetch: typeof fetch !== 'undefined' ? fetch : undefined,
+  Request: typeof Request !== 'undefined' ? Request : undefined,
+  Response: typeof Response !== 'undefined' ? Response : undefined,
+  Headers: typeof Headers !== 'undefined' ? Headers : undefined,
+};
+
+// Safe destructuring helper
+export const safeDestructure = <T extends Record<string, any>>(
+  source: T | undefined,
+  keys: (keyof T)[],
+  fallbacks: Partial<T> = {}
+): T => {
+  if (!source) {
+    console.warn('[Polyfills] Attempting to destructure from undefined object, using fallbacks');
+    return fallbacks as T;
+  }
+
+  const result = {} as T;
+  keys.forEach(key => {
+    result[key] = source[key] !== undefined ? source[key] : fallbacks[key];
+  });
+
+  return result;
 };
 
 export {}; // Make this a module
