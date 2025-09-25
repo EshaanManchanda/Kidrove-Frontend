@@ -1,27 +1,13 @@
-// Import polyfills first to ensure they're available before any other code runs
-import './polyfills';
+// Import whatwg-fetch polyfill first and ensure it's available
+import 'whatwg-fetch';
 
-// Import safety checks immediately after polyfills
-import './utils/fetchSafety';
-
-// Global error handler for destructuring errors
-window.addEventListener('error', (event) => {
-  if (event.error?.message?.includes('destructure') && event.error?.message?.includes('Request')) {
-    console.error('[Global Error Handler] Caught Request destructuring error:', {
-      message: event.error.message,
-      stack: event.error.stack,
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno
-    });
-
-    // Prevent the error from breaking the app
-    event.preventDefault();
-
-    // Show user-friendly error
-    console.error('A polyfill loading issue has been detected and handled. The app should still function.');
-  }
-});
+// Immediately ensure fetch APIs are available globally after import
+if (typeof globalThis !== 'undefined') {
+  globalThis.fetch = globalThis.fetch || fetch;
+  globalThis.Request = globalThis.Request || Request;
+  globalThis.Response = globalThis.Response || Response;
+  globalThis.Headers = globalThis.Headers || Headers;
+}
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
@@ -101,6 +87,11 @@ const toastOptions = {
 
 // Initialize PWA when app loads
 initializePWA().catch(console.error);
+
+// Verify all fetch APIs are available before React bootstraps
+if (typeof fetch === 'undefined' || typeof Request === 'undefined' || typeof Response === 'undefined' || typeof Headers === 'undefined') {
+  console.error('[Bootstrap Error] Some fetch APIs are missing after polyfill loading');
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
