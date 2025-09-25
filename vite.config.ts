@@ -114,7 +114,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: process.env.NODE_ENV === 'development',
+    sourcemap: true, // Always enable sourcemaps for debugging
     target: ['es2020', 'chrome80', 'safari13', 'firefox78'],
     minify: 'esbuild',
     // Force fresh build - disable caching
