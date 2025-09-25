@@ -123,22 +123,21 @@ export default defineConfig({
     reportCompressedSize: false,
     cssCodeSplit: true,
     rollupOptions: {
-      // Prevent Node.js modules from being bundled for client
+      // Prevent Node.js built-ins from being bundled for client
       external: (id) => {
-        // Exclude Node.js built-ins and server-only packages
-        if (id.includes('node:') ||
-            id.includes('undici') ||
-            id.includes('node-fetch') ||
+        // Only exclude actual Node.js built-ins, NOT fetch libraries
+        if (id.startsWith('node:') ||
             id.includes('perf_hooks') ||
             id.startsWith('fs') ||
             id.startsWith('path') ||
             id.startsWith('http') ||
             id.startsWith('https') ||
             id.startsWith('url') ||
-            id.startsWith('crypto') && !id.includes('crypto-js')) {
-          console.warn(`[Vite] Excluding Node.js module from bundle: ${id}`);
+            (id.startsWith('crypto') && !id.includes('crypto-js'))) {
+          console.warn(`[Vite] Excluding Node.js built-in from bundle: ${id}`);
           return true;
         }
+        // ✅ Allow undici/node-fetch to be bundled or replaced with browser equivalents
         return false;
       },
       output: {
