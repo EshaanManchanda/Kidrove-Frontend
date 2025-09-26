@@ -1,85 +1,118 @@
 // Import whatwg-fetch polyfill for browsers that need it
 import 'whatwg-fetch';
 
-// Verify that our HTML-level pre-chunk fixes worked
+// CRITICAL: Apply polyfills IMMEDIATELY before any library imports
+// This prevents axios/React Query from trying to destructure undefined globals
 (() => {
-  const status = (window as any).__POLYFILL_STATUS__;
-  if (status?.source === 'pre-chunk-fix') {
-    console.log('[Main Entry] ✅ Pre-chunk polyfill fixes detected and working');
-  } else {
-    console.warn('[Main Entry] ⚠️ Pre-chunk fixes not detected, applying backup fixes...');
+  // Get the primary global object that libraries will use
+  const safeGlobal =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof self !== 'undefined' && self) ||
+    (typeof global !== 'undefined' && global) ||
+    {};
 
-    // Backup polyfill application (should not be needed if HTML fix worked)
-    const safeGlobal =
-      (typeof globalThis !== 'undefined' && globalThis) ||
-      (typeof window !== 'undefined' && window) ||
-      (typeof self !== 'undefined' && self) ||
-      (typeof global !== 'undefined' && global) ||
-      {};
+  // Get polyfilled APIs safely
+  const getPolyfillAPIs = () => {
+    try {
+      return {
+        fetch: typeof fetch !== 'undefined' ? fetch : undefined,
+        Request: typeof Request !== 'undefined' ? Request : undefined,
+        Response: typeof Response !== 'undefined' ? Response : undefined,
+        Headers: typeof Headers !== 'undefined' ? Headers : undefined,
+      };
+    } catch (e) {
+      console.warn('[Polyfill] Error accessing APIs:', e);
+      return { fetch: undefined, Request: undefined, Response: undefined, Headers: undefined };
+    }
+  };
 
-    // Import the polyfilled APIs from whatwg-fetch safely
-    const polyfillAPIs = (() => {
-      try {
-        // whatwg-fetch should have populated these
-        return {
-          fetch: typeof fetch !== 'undefined' ? fetch : undefined,
-          Request: typeof Request !== 'undefined' ? Request : undefined,
-          Response: typeof Response !== 'undefined' ? Response : undefined,
-          Headers: typeof Headers !== 'undefined' ? Headers : undefined,
-        };
-      } catch (e) {
-        console.warn('[Main Entry] Error accessing polyfilled APIs:', e);
-        return {};
-      }
-    })();
+  const apis = getPolyfillAPIs();
 
-    // Apply polyfills safely to the primary global
-    Object.keys(polyfillAPIs).forEach(api => {
-      if (polyfillAPIs[api] && !safeGlobal[api]) {
-        try {
-          Object.defineProperty(safeGlobal, api, {
-            value: polyfillAPIs[api],
-            writable: true,
-            enumerable: true,
-            configurable: true
-          });
-        } catch (e) {
-          // Fallback to direct assignment
-          safeGlobal[api] = polyfillAPIs[api];
-        }
-      }
-    });
+  // Apply to ALL potential global objects immediately
+  const allGlobals = [safeGlobal, globalThis, window, global, self].filter(Boolean);
 
-    // Ensure all globals have the same APIs
-    [window, global, self].forEach(obj => {
-      if (obj && obj !== safeGlobal) {
-        Object.keys(polyfillAPIs).forEach(api => {
-          if (polyfillAPIs[api] && !obj[api]) {
+  allGlobals.forEach(globalObj => {
+    if (globalObj && typeof globalObj === 'object') {
+      Object.keys(apis).forEach(apiName => {
+        if (apis[apiName] && !globalObj[apiName]) {
+          try {
+            Object.defineProperty(globalObj, apiName, {
+              value: apis[apiName],
+              writable: true,
+              enumerable: true,
+              configurable: true
+            });
+          } catch (e) {
             try {
-              obj[api] = polyfillAPIs[api];
-            } catch (e) {
-              // Ignore if we can't set on this global
+              globalObj[apiName] = apis[apiName];
+            } catch (fallbackError) {
+              // Silent fail - some globals might be read-only
             }
           }
-        });
-      }
-    });
+        }
+      });
+    }
+  });
 
-    // Log the final state for debugging
-    console.log('[Main Entry] Polyfill state:', {
-      globalUsed: safeGlobal === globalThis ? 'globalThis' :
-                  safeGlobal === window ? 'window' :
-                  safeGlobal === self ? 'self' :
-                  safeGlobal === global ? 'global' : 'fallback',
-      apis: {
-        fetch: !!safeGlobal.fetch,
-        Request: !!safeGlobal.Request,
-        Response: !!safeGlobal.Response,
-        Headers: !!safeGlobal.Headers,
+  // Log final state
+  const finalState = {
+    globalUsed: safeGlobal === globalThis ? 'globalThis' :
+                safeGlobal === window ? 'window' :
+                safeGlobal === self ? 'self' :
+                safeGlobal === global ? 'global' : 'fallback',
+    apis: {
+      fetch: !!safeGlobal.fetch,
+      Request: !!safeGlobal.Request,
+      Response: !!safeGlobal.Response,
+      Headers: !!safeGlobal.Headers,
+    },
+    destructureTest: (() => {
+      try {
+        const { Request: R, Response: Res } = safeGlobal;
+        return { success: !!(R && Res), error: null };
+      } catch (e) {
+        return { success: false, error: e.message };
       }
-    });
+    })()
+  };
 
-    console.log('[Main Entry] Backup polyfill fixes applied');
+  console.log('[Polyfill] Immediate polyfill applied:', finalState);
+
+  // Set a flag for verification
+  safeGlobal.__POLYFILL_STATUS__ = {
+    source: 'immediate-fix',
+    timestamp: Date.now(),
+    state: finalState
+  };
+})();
+
+// Configure axios adapter fallback BEFORE importing React/libraries
+import axios from 'axios';
+
+// Safety net: if fetch adapter fails, fall back to XHR
+(() => {
+  try {
+    // Test if destructuring works
+    const testGlobal = globalThis || window;
+    const { Request: TestRequest } = testGlobal;
+    if (!TestRequest) {
+      throw new Error('Request not available for destructuring');
+    }
+    console.log('[Axios] Fetch adapter should work - Request is available');
+  } catch (e) {
+    console.warn('[Axios] Fetch adapter may fail, setting XHR adapter as fallback:', e.message);
+    try {
+      // Import XHR adapter synchronously
+      import('axios/lib/adapters/xhr.js').then(xhrModule => {
+        axios.defaults.adapter = xhrModule.default;
+        console.log('[Axios] XHR adapter configured successfully');
+      }).catch(adapterError => {
+        console.warn('[Axios] Could not configure XHR adapter:', adapterError);
+      });
+    } catch (importError) {
+      console.warn('[Axios] Could not import XHR adapter:', importError);
+    }
   }
 })();
 
