@@ -156,8 +156,14 @@
         // Apply to ALL potential global objects with comprehensive coverage
         var allGlobals = [safeGlobal];
 
-        // Add other globals if different from primary
-        [globalThis, window, global, self].forEach(function(g) {
+        // Add other globals if different from primary (using safe typeof checks)
+        var potentialGlobals = [];
+        if (typeof globalThis !== 'undefined') potentialGlobals.push(globalThis);
+        if (typeof window !== 'undefined') potentialGlobals.push(window);
+        if (typeof self !== 'undefined') potentialGlobals.push(self);
+        if (typeof global !== 'undefined') potentialGlobals.push(global);
+
+        potentialGlobals.forEach(function(g) {
           if (g && typeof g === 'object' && g !== safeGlobal && allGlobals.indexOf(g) === -1) {
             allGlobals.push(g);
           }
