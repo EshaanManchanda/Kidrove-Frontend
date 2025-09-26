@@ -10,27 +10,72 @@ import 'whatwg-fetch';
     console.warn('[Main Entry] ⚠️ Pre-chunk fixes not detected, applying backup fixes...');
 
     // Backup polyfill application (should not be needed if HTML fix worked)
-    const ensureAPI = (obj: any, name: string, api: any) => {
-      if (obj && api && typeof api !== 'undefined') {
+    const safeGlobal =
+      (typeof globalThis !== 'undefined' && globalThis) ||
+      (typeof window !== 'undefined' && window) ||
+      (typeof self !== 'undefined' && self) ||
+      (typeof global !== 'undefined' && global) ||
+      {};
+
+    // Import the polyfilled APIs from whatwg-fetch safely
+    const polyfillAPIs = (() => {
+      try {
+        // whatwg-fetch should have populated these
+        return {
+          fetch: typeof fetch !== 'undefined' ? fetch : undefined,
+          Request: typeof Request !== 'undefined' ? Request : undefined,
+          Response: typeof Response !== 'undefined' ? Response : undefined,
+          Headers: typeof Headers !== 'undefined' ? Headers : undefined,
+        };
+      } catch (e) {
+        console.warn('[Main Entry] Error accessing polyfilled APIs:', e);
+        return {};
+      }
+    })();
+
+    // Apply polyfills safely to the primary global
+    Object.keys(polyfillAPIs).forEach(api => {
+      if (polyfillAPIs[api] && !safeGlobal[api]) {
         try {
-          Object.defineProperty(obj, name, {
-            value: api,
+          Object.defineProperty(safeGlobal, api, {
+            value: polyfillAPIs[api],
             writable: true,
             enumerable: true,
             configurable: true
           });
         } catch (e) {
-          obj[name] = api;
+          // Fallback to direct assignment
+          safeGlobal[api] = polyfillAPIs[api];
         }
       }
-    };
+    });
 
-    [globalThis, window, global, self].forEach(obj => {
-      if (obj && typeof obj !== 'undefined') {
-        ensureAPI(obj, 'fetch', fetch);
-        ensureAPI(obj, 'Request', Request);
-        ensureAPI(obj, 'Response', Response);
-        ensureAPI(obj, 'Headers', Headers);
+    // Ensure all globals have the same APIs
+    [window, global, self].forEach(obj => {
+      if (obj && obj !== safeGlobal) {
+        Object.keys(polyfillAPIs).forEach(api => {
+          if (polyfillAPIs[api] && !obj[api]) {
+            try {
+              obj[api] = polyfillAPIs[api];
+            } catch (e) {
+              // Ignore if we can't set on this global
+            }
+          }
+        });
+      }
+    });
+
+    // Log the final state for debugging
+    console.log('[Main Entry] Polyfill state:', {
+      globalUsed: safeGlobal === globalThis ? 'globalThis' :
+                  safeGlobal === window ? 'window' :
+                  safeGlobal === self ? 'self' :
+                  safeGlobal === global ? 'global' : 'fallback',
+      apis: {
+        fetch: !!safeGlobal.fetch,
+        Request: !!safeGlobal.Request,
+        Response: !!safeGlobal.Response,
+        Headers: !!safeGlobal.Headers,
       }
     });
 
