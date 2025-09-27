@@ -142,6 +142,9 @@ export default defineConfig({
       },
       output: {
         manualChunks: {
+          // Polyfills FIRST - ensure they load before any other code
+          polyfills: ['whatwg-fetch'],
+
           // Core React
           vendor: ['react', 'react-dom'],
 
