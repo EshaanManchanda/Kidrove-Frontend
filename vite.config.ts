@@ -252,23 +252,19 @@ export default defineConfig({
     __CACHE_BUST__: JSON.stringify(Date.now().toString(36)),
     __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV || 'development'),
     __VERCEL_URL__: JSON.stringify(process.env.VERCEL_URL || 'localhost'),
-    // Ensure global points to globalThis for polyfill compatibility
     global: 'globalThis',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     'process.env': '{}',
     'process.platform': JSON.stringify('browser'),
     'process.version': JSON.stringify('v18.0.0')
   },
-  // Vercel deployment settings
   clearScreen: false,
   logLevel: process.env.NODE_ENV === 'production' ? 'error' : 'info',
-  // Preview mode optimizations
   preview: {
     port: 3000,
     host: true,
     strictPort: false
   },
-  // ESBuild options for better compatibility
   esbuild: {
     target: 'es2020',
     supported: {
