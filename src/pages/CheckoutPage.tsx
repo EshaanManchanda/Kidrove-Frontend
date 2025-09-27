@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { CartItem, CartSummary } from '../store/slices/cartSlice';
-import { orderService } from '../services/orderService';
+import { orderService } from '../services/order.service';
 import { useCart } from '../contexts/CartContext';
 import LoadingSpinner from '../components/common/LoadingSpinner';
 import { FaArrowLeft, FaCreditCard, FaShieldAlt } from 'react-icons/fa';
