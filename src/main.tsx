@@ -1,14 +1,3 @@
-// CRITICAL: Ensure fetch globals are available before ANY imports
-(() => {
-  const g = globalThis as any;
-  if (typeof g.fetch === 'undefined' && typeof window !== 'undefined') {
-    g.fetch = window.fetch;
-    g.Request = window.Request;
-    g.Response = window.Response;
-    g.Headers = window.Headers;
-  }
-})();
-
 // Import whatwg-fetch polyfill for browsers that need it
 import 'whatwg-fetch';
 
