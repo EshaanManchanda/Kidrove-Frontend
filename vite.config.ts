@@ -115,9 +115,9 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true, // Always enable sourcemaps for debugging
+    sourcemap: process.env.NODE_ENV !== 'production', // Sourcemaps only in development
     target: ['es2020', 'chrome80', 'safari13', 'firefox78'],
-    minify: 'esbuild',
+    minify: 'terser', // Use terser for better compression
     // Force fresh build - disable caching
     emptyOutDir: true,
     // Vercel optimizations

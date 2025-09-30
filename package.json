@@ -27,7 +27,7 @@
     "clean": "rimraf dist",
     "clean:all": "rimraf dist node_modules && npm install",
     "health-check": "node -e \"console.log('Health check passed'); process.exit(0)\"",
-    "postbuild": "node -e \"const fs = require('fs'); const path = 'dist/index.html'; if (fs.existsSync(path)) { console.log('✅ Build successful - index.html exists'); console.log('📦 Build size:', fs.statSync('dist').size + ' bytes'); } else { console.error('❌ Build failed - index.html not found'); process.exit(1); }\""
+    "postbuild": "node scripts/post-build.cjs"
   },
   "dependencies": {
     "@cloudinary/react": "^1.14.3",
@@ -75,7 +75,7 @@
     "react-router-dom": "^6.20.0",
     "react-select": "^5.8.0",
     "react-slider": "^2.0.6",
-    "react-spring": "^10.0.1",
+    "@react-spring/web": "^9.7.4",
     "recharts": "^3.2.0",
     "redux-persist": "^6.0.0",
     "swiper": "^11.2.10",
@@ -87,7 +87,6 @@
   "devDependencies": {
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "@tailwindcss/forms": "^0.5.10",
-    "@tailwindcss/line-clamp": "^0.4.4",
     "@tailwindcss/typography": "^0.5.16",
     "@testing-library/jest-dom": "^6.8.0",
     "@testing-library/react": "^16.3.0",
