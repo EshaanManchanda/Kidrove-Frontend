@@ -78,6 +78,10 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      // Prevent axios fetch adapter from being bundled (it has bugs with Vite)
+      'axios/lib/adapters/fetch.js': path.resolve(__dirname, './src/utils/emptyModule.ts'),
+
+      // Path aliases
       '@': path.resolve(__dirname, './src'),
       '@components': path.resolve(__dirname, './src/components'),
       '@pages': path.resolve(__dirname, './src/pages'),
