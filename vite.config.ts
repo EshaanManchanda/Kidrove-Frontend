@@ -164,7 +164,7 @@ export default defineConfig({
           charts: ['chart.js', 'react-chartjs-2'],
           
           // Carousels & Sliders
-          sliders: ['keen-slider', 'embla-carousel-react', 'swiper'],
+          sliders: ['keen-slider', 'swiper'],
           
           // Maps
           maps: ['react-leaflet', 'leaflet'],
