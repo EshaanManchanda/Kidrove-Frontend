@@ -1,12 +1,9 @@
 import React, { Suspense, useEffect } from 'react';
 import { Routes, Route, useLocation } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
-import { Provider } from 'react-redux';
-import { PersistGate } from 'redux-persist/integration/react';
 import { Toaster } from 'react-hot-toast';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
-import { store, persistor } from './store';
 
 // Initialize Stripe
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
@@ -693,23 +690,21 @@ function AppContent() {
 }
 
 function App() {
+  // Note: Redux Provider and PersistGate are set up in main.tsx
+  // This prevents double wrapping and potential state issues
   return (
-    <Provider store={store}>
-      <PersistGate loading={<LoadingSpinner />} persistor={persistor}>
-        <Elements
-          stripe={stripePromise}
-          options={{
-            mode: 'setup',
-            currency: 'usd',
-            appearance: {
-              theme: 'stripe',
-            },
-          }}
-        >
-          <AppContent />
-        </Elements>
-      </PersistGate>
-    </Provider>
+    <Elements
+      stripe={stripePromise}
+      options={{
+        mode: 'setup',
+        currency: 'usd',
+        appearance: {
+          theme: 'stripe',
+        },
+      }}
+    >
+      <AppContent />
+    </Elements>
   );
 }
 

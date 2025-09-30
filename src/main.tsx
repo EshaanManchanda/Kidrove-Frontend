@@ -1,25 +1,5 @@
-// CRITICAL: Fix axios utils.global detection in browser
-// This MUST be the very first code to execute before any imports
-// Axios tries to access 'global' which doesn't exist in browsers
-
-// Ensure globalThis is available (it should be in modern browsers)
-if (typeof globalThis === 'undefined') {
-  (window as any).globalThis = window;
-}
-
-// Set window.global to window for axios utils.global detection
-if (typeof window !== 'undefined' && !(window as any).global) {
-  (window as any).global = window;
-}
-
-// Also ensure Request, Response, Headers are available on global
-if (typeof window !== 'undefined' && (window as any).global) {
-  const g = (window as any).global;
-  g.Request = g.Request || window.Request;
-  g.Response = g.Response || window.Response;
-  g.Headers = g.Headers || window.Headers;
-  g.fetch = g.fetch || window.fetch;
-}
+// Note: Global polyfill for axios is handled in index.html
+// This ensures it runs before any module code loads
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
