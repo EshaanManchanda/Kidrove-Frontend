@@ -253,14 +253,12 @@ export default defineConfig({
     __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV || 'development'),
     __VERCEL_URL__: JSON.stringify(process.env.VERCEL_URL || 'localhost'),
 
-    // Global object definitions - use string literals to avoid replacement in node_modules
-    global: '"globalThis"',
-
-    // Fetch API globals - use function calls to avoid direct replacement
-    'globalThis.fetch': '(globalThis.fetch || fetch)',
-    'globalThis.Request': '(globalThis.Request || Request)',
-    'globalThis.Response': '(globalThis.Response || Response)',
-    'globalThis.Headers': '(globalThis.Headers || Headers)',
+    // Polyfill-related
+    global: 'globalThis',
+    'globalThis.fetch': 'fetch',
+    'globalThis.Request': 'Request',
+    'globalThis.Response': 'Response',
+    'globalThis.Headers': 'Headers',
 
     // Node/env mocks
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
