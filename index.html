@@ -96,6 +96,12 @@
         // UNIVERSAL CHUNK PROTECTION: Comprehensive fetch API polyfill protection
         console.log('[Pre-Chunk Fix] Setting up universal fetch API protection');
 
+        // CRITICAL FIX: Ensure window.global exists for axios utils.global detection
+        if (typeof window !== 'undefined' && !window.global) {
+          window.global = window;
+          console.log('[Pre-Chunk Fix] Set window.global = window for axios compatibility');
+        }
+
         // Get the primary global object using the same resolution as axios
         var safeGlobal =
           (typeof globalThis !== "undefined" && globalThis) ||
