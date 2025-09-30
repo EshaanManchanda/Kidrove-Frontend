@@ -125,7 +125,7 @@ export default defineConfig({
     rollupOptions: {
       // Prevent Node.js built-ins from being bundled for client
       external: (id) => {
-        // Only exclude actual Node.js built-ins, NOT fetch libraries
+        // Exclude Node.js built-ins from browser bundle
         if (id.startsWith('node:') ||
             id.includes('perf_hooks') ||
             id.startsWith('fs') ||
@@ -137,12 +137,11 @@ export default defineConfig({
           console.warn(`[Vite] Excluding Node.js built-in from bundle: ${id}`);
           return true;
         }
-        // ✅ Allow undici/node-fetch to be bundled or replaced with browser equivalents
         return false;
       },
       output: {
         manualChunks: {
-          // Core React (whatwg-fetch stays in main bundle for proper load order)
+          // Core React
           vendor: ['react', 'react-dom'],
 
           // Routing
@@ -221,8 +220,6 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
-      // Include whatwg-fetch FIRST to ensure polyfills are available early
-      'whatwg-fetch',
       'react',
       'react-dom',
       'react-router-dom',
@@ -250,14 +247,8 @@ export default defineConfig({
     __VERCEL_ENV__: JSON.stringify(process.env.VERCEL_ENV || 'development'),
     __VERCEL_URL__: JSON.stringify(process.env.VERCEL_URL || 'localhost'),
 
-    // Polyfill-related
-    global: 'globalThis',
-    'globalThis.fetch': 'fetch',
-    'globalThis.Request': 'Request',
-    'globalThis.Response': 'Response',
-    'globalThis.Headers': 'Headers',
-
     // Node/env mocks
+    global: 'globalThis',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     'process.env': '{}',
     'process.platform': JSON.stringify('browser'),
