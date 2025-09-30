@@ -1,3 +1,9 @@
+// CRITICAL: Fix axios utils.global detection in browser
+// Axios tries to access 'global' which doesn't exist in browsers
+if (typeof window !== 'undefined' && !(window as any).global) {
+  (window as any).global = window;
+}
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';

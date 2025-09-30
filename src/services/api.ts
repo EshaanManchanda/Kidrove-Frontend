@@ -1,6 +1,4 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-// @ts-ignore - XHR adapter is not exposed in types
-import xhrAdapter from 'axios/lib/adapters/xhr.js';
 import { store } from '../store';
 import { logoutUser, refreshToken } from '../store/slices/authSlice';
 
@@ -34,11 +32,10 @@ const createRequestKey = (url: string, method: string, params?: any): string => 
   return `${method.toUpperCase()}:${url}:${JSON.stringify(params || {})}`;
 };
 
-// Create axios instance with XHR adapter (avoid fetch adapter issues)
+// Create axios instance
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
   timeout: API_TIMEOUT,
-  adapter: xhrAdapter, // Use XHR adapter instead of fetch
   headers: {
     'Content-Type': 'application/json',
   },
