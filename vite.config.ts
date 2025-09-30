@@ -258,11 +258,17 @@ export default defineConfig({
     __VERCEL_URL__: JSON.stringify(process.env.VERCEL_URL || 'localhost'),
 
     // Node/env mocks
-    global: 'globalThis',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
     'process.env': '{}',
     'process.platform': JSON.stringify('browser'),
-    'process.version': JSON.stringify('v18.0.0')
+    'process.version': JSON.stringify('v18.0.0'),
+
+    // Fix axios utils.global issue - ensure global points to globalThis
+    'global': 'globalThis',
+    'global.fetch': 'globalThis.fetch',
+    'global.Request': 'globalThis.Request',
+    'global.Response': 'globalThis.Response',
+    'global.Headers': 'globalThis.Headers'
   },
   clearScreen: false,
   logLevel: process.env.NODE_ENV === 'production' ? 'error' : 'info',
