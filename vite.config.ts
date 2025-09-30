@@ -79,7 +79,13 @@ export default defineConfig({
   resolve: {
     alias: {
       // Prevent axios fetch adapter from being bundled (it has bugs with Vite)
+      // Try multiple patterns to catch all import variations
       'axios/lib/adapters/fetch.js': path.resolve(__dirname, './src/utils/emptyModule.ts'),
+      'axios/lib/adapters/fetch': path.resolve(__dirname, './src/utils/emptyModule.ts'),
+
+      // Replace the entire adapters module to only use XHR
+      'axios/lib/adapters/adapters.js': path.resolve(__dirname, './src/utils/axiosAdapters.ts'),
+      'axios/lib/adapters/adapters': path.resolve(__dirname, './src/utils/axiosAdapters.ts'),
 
       // Path aliases
       '@': path.resolve(__dirname, './src'),
