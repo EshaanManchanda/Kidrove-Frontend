@@ -142,10 +142,7 @@ export default defineConfig({
       },
       output: {
         manualChunks: {
-          // Polyfills FIRST - ensure they load before any other code
-          polyfills: ['whatwg-fetch'],
-
-          // Core React
+          // Core React (whatwg-fetch stays in main bundle for proper load order)
           vendor: ['react', 'react-dom'],
 
           // Routing
