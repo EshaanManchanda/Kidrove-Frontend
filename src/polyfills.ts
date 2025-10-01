@@ -127,16 +127,75 @@ function patchGlobalEnvironment() {
   return status;
 }
 
-// Execute polyfill immediately (synchronous)
+// Execute polyfill immediately (synchronous) - BEFORE any other code
 if (typeof window !== 'undefined') {
-  patchGlobalEnvironment();
+  const status = patchGlobalEnvironment();
+
+  // CRITICAL: Axios-specific fix
+  // Axios resolves global using this exact pattern (from axios source code):
+  // const _global = (typeof globalThis !== 'undefined' && globalThis) ||
+  //                 (typeof window !== 'undefined' && window) ||
+  //                 (typeof self !== 'undefined' && self) ||
+  //                 (typeof global !== 'undefined' && global) || {};
+  //
+  // We need to ensure Request, Response, Headers are ENUMERABLE on ALL these objects
+
+  const axiosGlobal =
+    (typeof globalThis !== 'undefined' && globalThis) ||
+    (typeof window !== 'undefined' && window) ||
+    (typeof self !== 'undefined' && self) ||
+    {} as any;
+
+  // Double-check axios's specific global has enumerable properties
+  const fetchAPIs = ['fetch', 'Request', 'Response', 'Headers'];
+  let axiosPatchCount = 0;
+
+  for (const apiName of fetchAPIs) {
+    const apiValue = (window as any)[apiName];
+    if (apiValue) {
+      const desc = Object.getOwnPropertyDescriptor(axiosGlobal, apiName);
+      if (!desc || !desc.enumerable) {
+        try {
+          if (desc) delete axiosGlobal[apiName];
+          Object.defineProperty(axiosGlobal, apiName, {
+            value: apiValue,
+            writable: true,
+            enumerable: true,  // CRITICAL
+            configurable: true
+          });
+          axiosPatchCount++;
+        } catch (e) {
+          console.warn(`[Polyfills] Failed axios-specific patch for ${apiName}:`, e);
+        }
+      }
+    }
+  }
+
+  console.log(`[Polyfills] 🎯 Axios-specific global patched (${axiosPatchCount} properties)`);
 
   // Store status for debugging
   (window as any).__POLYFILL_STATUS__ = {
     loaded: true,
     timestamp: Date.now(),
-    version: '2.0',
+    version: '3.0-axios-specific',
+    axiosPatchCount,
+    axiosGlobalType: axiosGlobal === globalThis ? 'globalThis' :
+                     axiosGlobal === window ? 'window' :
+                     axiosGlobal === self ? 'self' : 'unknown'
   };
+
+  // Final verification test using axios's pattern
+  try {
+    const testGlobal = axiosGlobal;
+    const { Request: R, Response: Res, Headers: H, fetch: F } = testGlobal;
+    if (R && Res && H && F) {
+      console.log('[Polyfills] ✅ Final axios destructuring test: PASSED');
+    } else {
+      console.error('[Polyfills] ❌ Final axios destructuring test: FAILED', { R: !!R, Res: !!Res, H: !!H, F: !!F });
+    }
+  } catch (e) {
+    console.error('[Polyfills] ❌ Final axios destructuring test EXCEPTION:', e);
+  }
 }
 
 // Export empty object to make this a module
