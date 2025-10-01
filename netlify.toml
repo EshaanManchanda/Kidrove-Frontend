@@ -2,8 +2,8 @@
 # https://docs.netlify.com/configure-builds/file-based-configuration/
 
 [build]
-  # Build command - Install dependencies first, then build
-  command = "npm install && npm run build"
+  # Build command - Force clean install to avoid cache issues
+  command = "rm -rf node_modules && npm install && npm run build"
 
   # Output directory (where Vite outputs the build)
   publish = "dist"
@@ -13,21 +13,22 @@
   [build.environment]
     NODE_VERSION = "22"
     NPM_VERSION = "8"
+    CI = "true"
 
 # Production context settings
 [context.production]
-  command = "npm install && npm run build"
+  command = "rm -rf node_modules && npm install && npm run build"
 
   [context.production.environment]
     NODE_ENV = "production"
 
 # Deploy Preview context (for pull requests)
 [context.deploy-preview]
-  command = "npm install && npm run build"
+  command = "rm -rf node_modules && npm install && npm run build"
 
 # Branch Deploy context
 [context.branch-deploy]
-  command = "npm install && npm run build"
+  command = "rm -rf node_modules && npm install && npm run build"
 
 # Redirect rules for Single Page Application
 # This ensures all routes are handled by React Router
