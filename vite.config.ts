@@ -148,7 +148,8 @@ export default defineConfig({
             return undefined; // undefined = main entry chunk
           }
 
-          // Core React - must load first
+          // Core React - Bundle in main entry chunk to guarantee it loads first
+          // This prevents race conditions where other chunks load before React is available
           if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
             if (!id.includes('react-router') && !id.includes('react-redux') &&
                 !id.includes('react-hook-form') && !id.includes('react-query') &&
@@ -156,7 +157,7 @@ export default defineConfig({
                 !id.includes('react-leaflet') && !id.includes('react-i18next') &&
                 !id.includes('react-helmet') && !id.includes('react-hot-toast') &&
                 !id.includes('react-stripe')) {
-              return 'vendor';
+              return undefined; // Main entry chunk - always loads first
             }
           }
 
@@ -224,8 +225,15 @@ export default defineConfig({
             return 'utils';
           }
 
-          // i18n - Removed manual chunking, now handled by dynamic import in App.tsx
-          // This ensures i18n only loads after React is initialized via useEffect
+          // i18n - Explicitly exclude from misc chunk to bundle with dynamic import
+          // Returning undefined allows Vite to bundle these with their importer (App.tsx dynamic import)
+          // This ensures i18n only loads when useEffect runs, after React is initialized
+          if (id.includes('node_modules/i18next') ||
+              id.includes('node_modules/react-i18next') ||
+              id.includes('node_modules/i18next-browser-languagedetector') ||
+              id.includes('node_modules/i18next-http-backend')) {
+            return undefined; // Bundle with dynamic import chunk, not misc
+          }
 
           // QR & Camera
           if (id.includes('node_modules/@zxing/library') ||
