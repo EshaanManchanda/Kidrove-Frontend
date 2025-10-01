@@ -221,6 +221,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: [
+      'whatwg-fetch',
       'react',
       'react-dom',
       'react-router-dom',
@@ -239,7 +240,7 @@ export default defineConfig({
     ],
     exclude: ['@zxing/library'],
     force: true,
-    entries: ['src/main.tsx']
+    entries: ['src/polyfills.ts', 'src/main.tsx']
   },
   define: {
     __APP_VERSION__: JSON.stringify(process.env.npm_package_version),

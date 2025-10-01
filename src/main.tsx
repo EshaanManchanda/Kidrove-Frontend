@@ -1,3 +1,7 @@
+// CRITICAL: Import polyfills FIRST before any other imports
+// This ensures fetch API is available for all modules, especially axios
+import './polyfills';
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
