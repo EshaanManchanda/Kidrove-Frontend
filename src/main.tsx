@@ -23,7 +23,7 @@ import { CartProvider } from '@/contexts/CartContext';
 import ErrorBoundary from '@components/common/ErrorBoundary';
 
 import '@/styles/index.css';
-import '@/i18n/config';
+// i18n will be initialized lazily in App.tsx to avoid loading before React
 
 // Initialize PWA
 import { initializePWA } from './services/pwaService';
