@@ -224,13 +224,8 @@ export default defineConfig({
             return 'utils';
           }
 
-          // i18n - NOTE: Moved to misc to avoid loading before React
-          // i18n libraries depend on React, so they should load after vendor chunk
-          if (id.includes('node_modules/i18next') ||
-              id.includes('node_modules/react-i18next') ||
-              id.includes('node_modules/i18next-browser-languagedetector')) {
-            return 'misc';  // Changed from 'i18n' to 'misc' to ensure proper load order
-          }
+          // i18n - Removed manual chunking, now handled by dynamic import in App.tsx
+          // This ensures i18n only loads after React is initialized via useEffect
 
           // QR & Camera
           if (id.includes('node_modules/@zxing/library') ||
