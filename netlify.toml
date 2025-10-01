@@ -3,7 +3,7 @@
 
 [build]
   # Build command - Install dependencies first, then build
-  command = "npm ci && npm run build"
+  command = "npm install && npm run build"
 
   # Output directory (where Vite outputs the build)
   publish = "dist"
@@ -13,25 +13,21 @@
   [build.environment]
     NODE_VERSION = "22"
     NPM_VERSION = "8"
-    NODE_ENV = "production"
 
 # Production context settings
 [context.production]
-  command = "npm ci && npm run build"
+  command = "npm install && npm run build"
 
   [context.production.environment]
     NODE_ENV = "production"
 
 # Deploy Preview context (for pull requests)
 [context.deploy-preview]
-  command = "npm ci && npm run build"
-
-  [context.deploy-preview.environment]
-    NODE_ENV = "production"
+  command = "npm install && npm run build"
 
 # Branch Deploy context
 [context.branch-deploy]
-  command = "npm ci && npm run build"
+  command = "npm install && npm run build"
 
 # Redirect rules for Single Page Application
 # This ensures all routes are handled by React Router
