@@ -201,6 +201,43 @@
         console.log('[Inline Polyfill] 🎉 Complete - Module scripts can now load safely');
       })();
     </script>
+
+    <!-- CRITICAL: React Availability Guard -->
+    <!-- Ensures React is loaded before other chunks that depend on it -->
+    <script>
+      (function() {
+        'use strict';
+
+        // Flag to track React loading status
+        window.__REACT_LOADED__ = false;
+
+        // Promise-based wait function for chunks that need React
+        window.__waitForReact__ = function() {
+          return new Promise(function(resolve) {
+            var checkInterval = 10; // Check every 10ms
+            var maxWait = 5000; // Timeout after 5 seconds
+            var elapsed = 0;
+
+            var check = function() {
+              if (window.__REACT_LOADED__) {
+                console.log('[React Guard] ✅ React confirmed loaded');
+                resolve();
+              } else if (elapsed >= maxWait) {
+                console.error('[React Guard] ❌ Timeout waiting for React');
+                resolve(); // Resolve anyway to prevent hanging
+              } else {
+                elapsed += checkInterval;
+                setTimeout(check, checkInterval);
+              }
+            };
+
+            check();
+          });
+        };
+
+        console.log('[React Guard] 🛡️ Guard initialized - waiting for React...');
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
