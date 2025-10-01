@@ -1,6 +1,3 @@
-// Note: Global polyfill for axios is handled in index.html
-// This ensures it runs before any module code loads
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';

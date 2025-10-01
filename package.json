@@ -1,7 +1,7 @@
 {
-  "name": "kidzapp-clone-frontend",
+  "name": "Kidrove",
   "version": "1.0.2",
-  "description": "Frontend for KidzApp Clone - Kids Activities Platform",
+  "description": "Kidrove - Kids Activities Platform",
   "type": "module",
   "engines": {
     "node": "22.x",
