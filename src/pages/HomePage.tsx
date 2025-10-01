@@ -617,12 +617,19 @@ const HomePage: React.FC = () => {
       setStats(null);
       setUsingMockData(false);
       
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error fetching data:', err);
+
+      // Determine if it's a timeout/cold start issue
+      const isColdStart = err?.message?.includes('starting up') || err?.message?.includes('timeout');
+      const errorMsg = isColdStart
+        ? 'Backend is waking up (takes 30-60s on first request). Click "Retry" in a moment.'
+        : 'Unable to connect to the server. Showing default data.';
+
       // Use mock data if backend is unavailable
       setEvents(mockEvents);
-      setFeaturedEvents(mockEvents.slice(0, 3).map(event => ({ 
-        ...event, 
+      setFeaturedEvents(mockEvents.slice(0, 3).map(event => ({
+        ...event,
         buttonLabel: 'View Details',
         images: [event.image],
         _id: event.id,
@@ -646,7 +653,7 @@ const HomePage: React.FC = () => {
       })));
       setCategories(mockCategories);
       setUsingMockData(true);
-      setError('Unable to connect to the server. Showing default data.');
+      setError(errorMsg);
     } finally {
       // Always set loading to false after a short delay to prevent flash of loading state
       setTimeout(() => setIsLoading(false), 300);
@@ -747,7 +754,9 @@ const HomePage: React.FC = () => {
                     <FaWifi className="text-orange-500" size={16} />
                   </div>
                   <div className="py-1">
-                    <p className="font-semibold text-orange-600">Connection Issue</p>
+                    <p className="font-semibold text-orange-600">
+                      {error?.includes('waking up') || error?.includes('starting up') ? 'Backend Starting' : 'Connection Issue'}
+                    </p>
                     <p className="text-sm text-gray-600">{error}</p>
                   </div>
                 </div>
