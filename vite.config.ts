@@ -141,51 +141,119 @@ export default defineConfig({
         return false;
       },
       output: {
-        manualChunks: {
-          // Core React
-          vendor: ['react', 'react-dom'],
+        manualChunks: (id) => {
+          // CRITICAL: Force polyfills into main entry chunk (no separate chunk)
+          // This ensures polyfills run BEFORE any other code
+          if (id.includes('src/polyfills') || id.includes('whatwg-fetch')) {
+            return undefined; // undefined = main entry chunk
+          }
+
+          // Core React - must load first
+          if (id.includes('node_modules/react') || id.includes('node_modules/react-dom')) {
+            if (!id.includes('react-router') && !id.includes('react-redux') &&
+                !id.includes('react-hook-form') && !id.includes('react-query') &&
+                !id.includes('react-icons') && !id.includes('react-chartjs') &&
+                !id.includes('react-leaflet') && !id.includes('react-i18next') &&
+                !id.includes('react-helmet') && !id.includes('react-hot-toast') &&
+                !id.includes('react-stripe')) {
+              return 'vendor';
+            }
+          }
 
           // Routing
-          router: ['react-router-dom'],
+          if (id.includes('node_modules/react-router-dom')) {
+            return 'router';
+          }
 
           // State Management
-          state: ['@reduxjs/toolkit', 'react-redux', 'redux-persist'],
-          
-          // UI & Animations
-          ui: ['framer-motion', 'lucide-react', 'react-icons'],
-          
-          // Forms & Validation
-          forms: ['react-hook-form', '@hookform/resolvers', 'yup'],
-          
-          // Data Fetching
-          query: ['@tanstack/react-query', 'axios'],
-          
-          // Charts & Visualization
-          charts: ['chart.js', 'react-chartjs-2'],
-          
-          // Carousels & Sliders
-          sliders: ['keen-slider', 'swiper'],
-          
-          // Maps
-          maps: ['react-leaflet', 'leaflet'],
-          
-          // Payments
-          payments: ['@stripe/stripe-js', '@stripe/react-stripe-js'],
-          
-          // Utilities
-          utils: ['lodash', 'date-fns', 'clsx', 'tailwind-merge'],
-          
-          // i18n
-          i18n: ['i18next', 'react-i18next', 'i18next-browser-languagedetector'],
-          
-          // QR & Camera
-          qr: ['@zxing/library', 'qr-scanner', 'qrcode.react'],
-          
-          // Firebase
-          firebase: ['firebase/app', 'firebase/auth'],
+          if (id.includes('node_modules/@reduxjs/toolkit') ||
+              id.includes('node_modules/react-redux') ||
+              id.includes('node_modules/redux-persist')) {
+            return 'state';
+          }
 
-          // Other
-          misc: ['js-cookie', 'uuid', 'react-helmet-async']
+          // UI & Animations
+          if (id.includes('node_modules/framer-motion') ||
+              id.includes('node_modules/lucide-react') ||
+              id.includes('node_modules/react-icons')) {
+            return 'ui';
+          }
+
+          // Forms & Validation
+          if (id.includes('node_modules/react-hook-form') ||
+              id.includes('node_modules/@hookform/resolvers') ||
+              id.includes('node_modules/yup')) {
+            return 'forms';
+          }
+
+          // Data Fetching - AFTER polyfills are guaranteed to be in main chunk
+          if (id.includes('node_modules/@tanstack/react-query') ||
+              id.includes('node_modules/axios')) {
+            return 'query';
+          }
+
+          // Charts & Visualization
+          if (id.includes('node_modules/chart.js') ||
+              id.includes('node_modules/react-chartjs-2')) {
+            return 'charts';
+          }
+
+          // Carousels & Sliders
+          if (id.includes('node_modules/keen-slider') ||
+              id.includes('node_modules/swiper')) {
+            return 'sliders';
+          }
+
+          // Maps
+          if (id.includes('node_modules/react-leaflet') ||
+              id.includes('node_modules/leaflet')) {
+            return 'maps';
+          }
+
+          // Payments
+          if (id.includes('node_modules/@stripe/stripe-js') ||
+              id.includes('node_modules/@stripe/react-stripe-js')) {
+            return 'payments';
+          }
+
+          // Utilities
+          if (id.includes('node_modules/lodash') ||
+              id.includes('node_modules/date-fns') ||
+              id.includes('node_modules/clsx') ||
+              id.includes('node_modules/tailwind-merge')) {
+            return 'utils';
+          }
+
+          // i18n
+          if (id.includes('node_modules/i18next') ||
+              id.includes('node_modules/react-i18next') ||
+              id.includes('node_modules/i18next-browser-languagedetector')) {
+            return 'i18n';
+          }
+
+          // QR & Camera
+          if (id.includes('node_modules/@zxing/library') ||
+              id.includes('node_modules/qr-scanner') ||
+              id.includes('node_modules/qrcode.react')) {
+            return 'qr';
+          }
+
+          // Firebase
+          if (id.includes('node_modules/firebase')) {
+            return 'firebase';
+          }
+
+          // Other misc libraries
+          if (id.includes('node_modules/js-cookie') ||
+              id.includes('node_modules/uuid') ||
+              id.includes('node_modules/react-helmet-async')) {
+            return 'misc';
+          }
+
+          // Everything else from node_modules goes to misc
+          if (id.includes('node_modules')) {
+            return 'misc';
+          }
         },
         chunkFileNames: (chunkInfo) => {
           const facadeModuleId = chunkInfo.facadeModuleId ? chunkInfo.facadeModuleId.split('/').pop() : 'chunk';
