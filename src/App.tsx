@@ -690,6 +690,14 @@ function AppContent() {
 }
 
 function App() {
+  // Initialize i18n lazily after React is fully loaded
+  useEffect(() => {
+    // Dynamic import ensures i18n loads AFTER React and all contexts are ready
+    import('@/i18n/config').catch((error) => {
+      console.error('Failed to initialize i18n:', error);
+    });
+  }, []);
+
   // Note: Redux Provider and PersistGate are set up in main.tsx
   // This prevents double wrapping and potential state issues
   return (
