@@ -4,6 +4,14 @@ import './polyfills';
 
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+
+// CRITICAL: Signal that React is loaded and available
+// This works with the React Guard in index.html to prevent race conditions
+if (typeof window !== 'undefined') {
+  (window as any).__REACT_LOADED__ = true;
+  console.log('[React Guard] ✅ React loaded and available');
+}
+
 import { BrowserRouter } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';

@@ -161,10 +161,8 @@ export default defineConfig({
             }
           }
 
-          // Routing
-          if (id.includes('node_modules/react-router-dom')) {
-            return 'router';
-          }
+          // Routing - REMOVED: react-router-dom now bundled with main entry chunk
+          // See lines 238-243 for router configuration
 
           // State Management
           if (id.includes('node_modules/@reduxjs/toolkit') ||
@@ -235,6 +233,19 @@ export default defineConfig({
             return undefined; // Bundle with dynamic import chunk, not misc
           }
 
+          // CRITICAL: Router and React-dependent libraries must load with main chunk
+          // react-router-dom calls createContext at module parse time (not runtime)
+          // These libraries MUST have React available before they load
+          if (id.includes('node_modules/react-router-dom')) {
+            return undefined; // Bundle with main entry chunk to guarantee React is available
+          }
+
+          // Other React-dependent libraries that use Context APIs
+          if (id.includes('node_modules/react-helmet-async') ||
+              id.includes('node_modules/react-hot-toast')) {
+            return undefined; // Bundle with main entry chunk
+          }
+
           // QR & Camera
           if (id.includes('node_modules/@zxing/library') ||
               id.includes('node_modules/qr-scanner') ||
@@ -249,8 +260,7 @@ export default defineConfig({
 
           // Other misc libraries
           if (id.includes('node_modules/js-cookie') ||
-              id.includes('node_modules/uuid') ||
-              id.includes('node_modules/react-helmet-async')) {
+              id.includes('node_modules/uuid')) {
             return 'misc';
           }
 
@@ -288,6 +298,17 @@ export default defineConfig({
       compress: {
         drop_console: process.env.NODE_ENV === 'production',
         drop_debugger: process.env.NODE_ENV === 'production'
+      }
+    },
+    // Module preload to ensure proper chunk loading order
+    modulePreload: {
+      polyfill: true,
+      resolveDependencies: (filename, deps, { hostId, hostType }) => {
+        // Ensure main chunk (with React) loads before misc/router chunks
+        if (filename.includes('misc') || filename.includes('router')) {
+          return deps.filter(dep => dep.includes('index-'));
+        }
+        return deps;
       }
     }
   },
