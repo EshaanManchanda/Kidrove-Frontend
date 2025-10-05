@@ -232,7 +232,24 @@ const BookingsPage: React.FC = () => {
                             <div className="mt-4 sm:mt-0 flex flex-col space-y-2">
                               <Link
                                 to={`/bookings/${booking._id || booking.id}`}
-                                className="inline-flex items-center justify-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                                style={{
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  padding: '0.5rem 1rem',
+                                  borderRadius: '0.375rem',
+                                  fontSize: '0.875rem',
+                                  fontWeight: 500,
+                                  color: '#fff',
+                                  background: 'var(--color-primary, #3b82f6)',
+                                  border: 'none',
+                                  textDecoration: 'none',
+                                  minHeight: '2.25rem',
+                                  minWidth: '7rem',
+                                  boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                                  transition: 'background 0.2s, color 0.2s',
+                                }}
+                                className="hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                               >
                                 View Details
                               </Link>
@@ -246,7 +263,7 @@ const BookingsPage: React.FC = () => {
                                     {expandedBookings.has(booking._id || booking.id) ? 'Hide Tickets' : 'View Tickets'}
                                   </button>
 
-                                  {booking.status === 'confirmed' && (
+                                  {/* {booking.status === 'confirmed' && (
                                     <button
                                       onClick={() => handleShowBookingQR(booking)}
                                       className="inline-flex items-center justify-center px-4 py-2 border border-green-500 text-sm font-medium rounded-md text-green-600 bg-white hover:bg-green-500 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
@@ -256,7 +273,7 @@ const BookingsPage: React.FC = () => {
                                       </svg>
                                       Show QR Code
                                     </button>
-                                  )}
+                                  )} */}
                                 </>
                               )}
 
