@@ -413,39 +413,51 @@ const PartnerWithUsPage: React.FC = () => {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className="py-16 px-4 sm:px-6 lg:px-8 bg-white"
+          className="py-20 px-4 sm:px-6 lg:px-8 bg-white"
         >
           <div className="max-w-7xl mx-auto">
-            <motion.div variants={itemVariants} className="text-center mb-16">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4" style={{ color: 'var(--primary-color)' }}>
+            <motion.div variants={itemVariants} className="text-center mb-20">
+              <div className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium mb-6"
+                style={{ 
+                  backgroundColor: 'rgba(0, 142, 199, 0.1)',
+                  color: 'var(--primary-color)',
+                  border: '1px solid rgba(0, 142, 199, 0.2)'
+                }}
+              >
+                <FiUsers className="mr-2" />
+                Partnership Types
+              </div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
                 Choose How You'd Like to Partner
               </h2>
-              <p className="text-xl text-gray-600">
+              <p className="text-xl text-gray-600 max-w-3xl mx-auto">
                 Different opportunities for individuals, creators, and organizations.
               </p>
             </motion.div>
 
             {/* Tab Navigation */}
-            <div className="flex flex-wrap justify-center gap-3 mb-12">
+            <div className="flex flex-wrap justify-center gap-4 mb-16">
               {partnershipTypes.map((type) => (
                 <button
                   key={type.id}
                   onClick={() => setActiveTab(type.id)}
-                  className={`px-6 py-4 rounded-xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg ${
+                  className={`px-8 py-4 rounded-2xl font-bold transition-all duration-300 transform hover:scale-105 shadow-lg text-lg ${
                     activeTab === type.id
-                      ? 'text-white shadow-xl'
-                      : 'text-gray-600 hover:text-gray-800 bg-white'
+                      ? 'text-white shadow-2xl scale-105'
+                      : 'text-gray-600 hover:text-gray-800 bg-white hover:bg-gray-50'
                   }`}
                   style={{
                     background: activeTab === type.id 
-                      ? `linear-gradient(135deg, ${type.color} 0%, ${type.color}dd 100%)`
+                      ? (type.id === 'vendor' || type.id === 'school' 
+                          ? 'linear-gradient(135deg, #008EC7 0%, #0070a3 100%)'
+                          : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)')
                       : 'white',
                     border: activeTab === type.id ? 'none' : '2px solid #e5e7eb',
-                    color: activeTab === type.id ? 'white' : 'var(--primary-color)'
+                    color: activeTab === type.id ? 'white' : (type.id === 'vendor' || type.id === 'school' ? '#008EC7' : '#8B4513')
                   }}
                 >
                   <span className="flex items-center">
-                    <type.icon className="w-5 h-5 mr-2" />
+                    <type.icon className="w-6 h-6 mr-3" />
                     {type.title}
                   </span>
                 </button>
@@ -458,44 +470,52 @@ const PartnerWithUsPage: React.FC = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
-              className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-12 shadow-xl border border-gray-100"
+              className="bg-gradient-to-br from-gray-50 to-white rounded-3xl p-12 shadow-2xl border border-gray-100"
             >
               {partnershipTypes.map((type) => (
                 activeTab === type.id && (
                   <div key={type.id} className="text-center">
                     <div 
-                      className="w-24 h-24 mx-auto mb-8 rounded-3xl flex items-center justify-center shadow-2xl"
+                      className="w-28 h-28 mx-auto mb-8 rounded-3xl flex items-center justify-center shadow-2xl"
                       style={{ 
-                        background: `linear-gradient(135deg, ${type.color} 0%, ${type.color}dd 100%)`
+                        background: type.id === 'vendor' || type.id === 'school' 
+                          ? 'linear-gradient(135deg, #008EC7 0%, #0070a3 100%)'
+                          : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)'
                       }}
                     >
-                      <type.icon className="w-12 h-12 text-white" />
+                      <type.icon className="w-14 h-14 text-white" />
                     </div>
-                    <h3 className="text-3xl font-bold mb-6" style={{ color: type.color }}>
+                    <h3 className="text-4xl font-bold mb-6" style={{ 
+                      color: type.id === 'vendor' || type.id === 'school' ? '#008EC7' : '#8B4513'
+                    }}>
                       {type.title}
                     </h3>
-                    <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto leading-relaxed">
+                    <p className="text-xl text-gray-600 mb-10 max-w-3xl mx-auto leading-relaxed">
                       {type.description}
                     </p>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
                       {type.features.map((feature, index) => (
-                        <div key={index} className="flex items-center justify-center bg-white rounded-xl p-4 shadow-md">
-                          <FiCheckCircle className="w-6 h-6 mr-3" style={{ color: type.color }} />
-                          <span className="text-gray-700 font-medium">{feature}</span>
+                        <div key={index} className="flex items-center justify-center bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+                          <FiCheckCircle className="w-7 h-7 mr-4" style={{ 
+                            color: type.id === 'vendor' || type.id === 'school' ? '#008EC7' : '#8B4513'
+                          }} />
+                          <span className="text-gray-700 font-semibold text-lg">{feature}</span>
                         </div>
                       ))}
                     </div>
                     <button
                       onClick={() => document.getElementById('partnership-form')?.scrollIntoView({ behavior: 'smooth' })}
-                      className="group px-10 py-4 font-bold rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-lg"
+                      className="group px-12 py-5 font-bold rounded-2xl transition-all duration-300 transform hover:scale-105 shadow-xl hover:shadow-2xl text-xl"
                       style={{ 
-                        background: `linear-gradient(135deg, ${type.color} 0%, ${type.color}dd 100%)`,
+                        background: type.id === 'vendor' || type.id === 'school' 
+                          ? 'linear-gradient(135deg, #008EC7 0%, #0070a3 100%)'
+                          : 'linear-gradient(135deg, #8B4513 0%, #A0522D 100%)',
                         color: 'white'
                       }}
                     >
                       <span className="flex items-center justify-center">
                         {type.cta}
-                        <FiArrowRight className="ml-3 group-hover:translate-x-1 transition-transform" />
+                        <FiArrowRight className="ml-4 group-hover:translate-x-1 transition-transform" />
                       </span>
                     </button>
                   </div>
