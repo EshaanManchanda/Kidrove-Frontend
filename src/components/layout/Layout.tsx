@@ -682,6 +682,7 @@ const Layout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                 <li><Link to="/blog" className="text-gray-600 hover:text-gray-900 text-sm">Blog</Link></li>
                 <li><Link to="/contact" className="text-gray-600 hover:text-gray-900 text-sm">Contact Us</Link></li>
                 <li><Link to="/faq" className="text-gray-600 hover:text-gray-900 text-sm">FAQs</Link></li>
+                <li><Link to="/partner-with-us" className="text-gray-600 hover:text-gray-900 text-sm">Partner with Us</Link></li>
               </ul>
             </div>
             

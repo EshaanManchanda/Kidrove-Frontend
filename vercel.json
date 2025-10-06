@@ -6,7 +6,6 @@
   "installCommand": "npm install --include=dev",
   "framework": "vite",
   "regions": ["iad1"],
-
   "build": {
     "env": {
       "NODE_ENV": "production",
@@ -14,43 +13,83 @@
       "VITE_BUILD_TARGET": "production"
     }
   },
-
   "headers": [
     {
-      "source": "/(.*)\\.js",
+      "source": "/js/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
-      "source": "/(.*)\\.css",
+      "source": "/css/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
       ]
     },
     {
-      "source": "/(.*)\\.(png|jpg|jpeg|gif|svg|webp|ico|woff2|woff|ttf|eot)",
+      "source": "/images/(.*)",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
       ]
     },
     {
       "source": "/manifest.json",
       "headers": [
-        { "key": "Cache-Control", "value": "public, max-age=86400" }
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=86400"
+        }
       ]
     },
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" },
-        { "key": "X-XSS-Protection", "value": "1; mode=block" },
-        { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" }
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
       ]
     }
   ],
-
   "rewrites": [
     {
       "source": "/api/(.*)",
@@ -65,11 +104,10 @@
       "destination": "/robots.txt"
     },
     {
-      "source": "/((?!api|_next|_static|favicon.ico|sw.js|manifest.json|robots.txt|sitemap.xml).*)",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
-
   "redirects": [
     {
       "source": "/home",
@@ -77,7 +115,6 @@
       "permanent": false
     }
   ],
-
   "cleanUrls": true,
   "trailingSlash": false
 }
