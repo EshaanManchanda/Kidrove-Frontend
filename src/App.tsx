@@ -92,6 +92,7 @@ const PrivacyPage = React.lazy(() => import(/* webpackChunkName: "static" */ './
 const TermsPage = React.lazy(() => import(/* webpackChunkName: "static" */ './pages/static/TermsPage'));
 const FAQPage = React.lazy(() => import(/* webpackChunkName: "static" */ './pages/static/FAQPage'));
 const HelpPage = React.lazy(() => import(/* webpackChunkName: "static" */ './pages/static/HelpPage'));
+const PartnerWithUsPage = React.lazy(() => import(/* webpackChunkName: "static" */ './pages/static/PartnerWithUsPage'));
 
 // Error Pages
 const NotFoundPage = React.lazy(() => import(/* webpackChunkName: "error" */ './pages/error/NotFoundPage'));
@@ -261,6 +262,11 @@ function AppContent() {
             <Route path="help" element={
               <Suspense fallback={<LoadingSpinner />}>
                 <HelpPage />
+              </Suspense>
+            } />
+            <Route path="partner-with-us" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <PartnerWithUsPage />
               </Suspense>
             } />
             

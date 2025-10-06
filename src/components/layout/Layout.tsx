@@ -265,6 +265,13 @@ const Layout: React.FC<{ children?: React.ReactNode }> = ({ children }) => {
                 Kidzapp Go
               </Link>
               <Link 
+                to="/faq" 
+                className={`text-sm font-medium hover:opacity-80 transition-opacity duration-300 ${scrolled ? 'text-white' : ''}`}
+                style={{ color: scrolled ? 'white' : 'var(--primary-color)' }}
+              >
+                FAQ
+              </Link>
+              <Link 
                 to="/contact" 
                 className={`text-sm font-medium hover:opacity-80 transition-opacity duration-300 ${scrolled ? 'text-white' : ''}`}
                 style={{ color: scrolled ? 'white' : 'var(--primary-color)' }}
