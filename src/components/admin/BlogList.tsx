@@ -36,7 +36,12 @@ interface Blog {
   slug: string;
   status: 'draft' | 'published' | 'archived';
   featured: boolean;
-  featuredImage: string;
+  featuredImage?: string;  // OLD - deprecated
+  featuredImageAsset?: {   // NEW - populated MediaAsset
+    _id: string;
+    url: string;
+    thumbnailUrl?: string;
+  };
   category: {
     _id: string;
     name: string;
@@ -244,9 +249,21 @@ const BlogList: React.FC = () => {
       console.error('Error submitting blog:', error);
       console.error('Error response:', error.response?.data);
       console.error('Error status:', error.response?.status);
-      // Re-throw with more details
-      const errorMessage = error.response?.data?.message || error.message || 'Failed to save blog';
-      throw new Error(errorMessage);
+
+      // Extract specific validation errors
+      if (error.response?.data?.errors) {
+        const validationErrors = error.response.data.errors;
+        const errorMessages = Object.entries(validationErrors)
+          .map(([field, message]) => `${field}: ${message}`)
+          .join('\n');
+
+        toast.error(`Validation failed:\n${errorMessages}`, { duration: 5000 });
+        throw new Error(error.response?.data?.message || 'Validation failed');
+      } else {
+        const errorMessage = error.response?.data?.message || error.message || 'Failed to save blog';
+        toast.error(errorMessage);
+        throw new Error(errorMessage);
+      }
     }
   };
 
@@ -386,10 +403,15 @@ const BlogList: React.FC = () => {
       label: 'Blog Post',
       render: (_: any, blog: Blog) => {
         if (!blog) return null;
+        // Prefer new field, fallback to old
+        const imageUrl = blog.featuredImageAsset?.url
+          || blog.featuredImage
+          || '/assets/images/blog/placeholder.svg';
+
         return (
           <div className="flex items-start space-x-3 max-w-md">
             <img
-              src={blog.featuredImage || '/assets/images/blog/placeholder.svg'}
+              src={imageUrl}
               alt={blog.title}
               className="w-16 h-16 object-cover rounded-lg flex-shrink-0"
               onError={(e) => {
@@ -472,35 +494,35 @@ const BlogList: React.FC = () => {
       render: (_: any, blog: Blog) => {
         if (!blog?._id) return null;
         return (
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="secondary"
-              size="sm"
+          <div className="flex items-center gap-2">
+            <button
+              className="p-2 text-blue-600 hover:text-white hover:bg-blue-600 rounded-lg transition-all duration-200 hover:scale-105"
               onClick={() => handleViewComments(blog._id)}
+              title="View Comments"
             >
               <MessageSquare className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
+            </button>
+            <button
+              className="p-2 text-gray-600 hover:text-white hover:bg-gray-600 rounded-lg transition-all duration-200 hover:scale-105"
               onClick={() => window.open(`/blog/${blog.slug}`, '_blank')}
+              title="Open Blog"
             >
               <ExternalLink className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="secondary"
-              size="sm"
+            </button>
+            <button
+              className="p-2 text-green-600 hover:text-white hover:bg-green-600 rounded-lg transition-all duration-200 hover:scale-105"
               onClick={() => handleEditBlog(blog)}
+              title="Edit Blog"
             >
               <Edit className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="danger"
-              size="sm"
+            </button>
+            <button
+              className="p-2 text-red-600 hover:text-white hover:bg-red-600 rounded-lg transition-all duration-200 hover:scale-105"
               onClick={() => handleDeleteBlog(blog._id)}
+              title="Delete Blog"
             >
               <Trash2 className="w-4 h-4" />
-            </Button>
+            </button>
           </div>
         );
       }
@@ -530,7 +552,7 @@ const BlogList: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm text-gray-600">Total Posts</p>
-                <p className="text-2xl font-bold">{pagination.totalBlogs}</p>
+                <p className="text-2xl font-bold text-blue-600">{pagination.totalBlogs}</p>
               </div>
               <div className="p-2 bg-blue-100 rounded-full">
                 <Calendar className="w-6 h-6 text-blue-600" />
@@ -543,7 +565,7 @@ const BlogList: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm text-gray-600">Published</p>
-                <p className="text-2xl font-bold">
+                <p className="text-2xl font-bold text-green-600">
                   {blogs.filter(b => b.status === 'published').length}
                 </p>
               </div>
@@ -558,7 +580,7 @@ const BlogList: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm text-gray-600">Drafts</p>
-                <p className="text-2xl font-bold">
+                <p className="text-2xl font-bold text-yellow-600">
                   {blogs.filter(b => b.status === 'draft').length}
                 </p>
               </div>
@@ -573,7 +595,7 @@ const BlogList: React.FC = () => {
             <div className="flex items-center">
               <div className="flex-1">
                 <p className="text-sm text-gray-600">Categories</p>
-                <p className="text-2xl font-bold">{categories.length}</p>
+                <p className="text-2xl font-bold text-purple-600">{categories.length}</p>
               </div>
               <div className="p-2 bg-purple-100 rounded-full">
                 <Tag className="w-6 h-6 text-purple-600" />
@@ -586,10 +608,12 @@ const BlogList: React.FC = () => {
       {/* Filters */}
       <Card>
         <CardContent className="p-4">
-          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0 lg:space-x-4">
-            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 flex-1">
-              <div className="relative flex-1 max-w-md">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+              <div className="relative flex-1 max-w-md h-[42px]">
+                <div className="absolute left-3 top-0 h-full flex items-center pointer-events-none">
+                  <Search className="text-gray-400 w-4 h-4" />
+                </div>
                 <input
                   type="text"
                   id="blog-search"
@@ -597,7 +621,7 @@ const BlogList: React.FC = () => {
                   placeholder="Search blogs..."
                   value={filters.search}
                   onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="h-full pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 />
               </div>
 
@@ -606,7 +630,7 @@ const BlogList: React.FC = () => {
                 name="blogFilterStatus"
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-[42px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               >
                 <option value="">All Status</option>
                 <option value="draft">Draft</option>
@@ -617,7 +641,7 @@ const BlogList: React.FC = () => {
               <select
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-[42px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               >
                 <option value="">All Categories</option>
                 {categories.map((category) => (
@@ -628,7 +652,7 @@ const BlogList: React.FC = () => {
               </select>
             </div>
 
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center">
               <select
                 value={`${filters.sortBy}-${filters.sortOrder}`}
                 onChange={(e) => {
@@ -636,7 +660,7 @@ const BlogList: React.FC = () => {
                   handleFilterChange('sortBy', sortBy);
                   handleFilterChange('sortOrder', sortOrder);
                 }}
-                className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-[42px] px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               >
                 <option value="createdAt-desc">Newest First</option>
                 <option value="createdAt-asc">Oldest First</option>

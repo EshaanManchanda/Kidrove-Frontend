@@ -1,5 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ImageUpload from '../common/ImageUpload';
+import TipTapEditor from '../common/TipTapEditor';
+import DOMPurify from 'isomorphic-dompurify';
+import MediaPickerModal from '@/components/admin/media/MediaPickerModal';
+import { MediaAsset } from '@/store/slices/mediaSlice';
 
 interface Category {
   id: string;
@@ -22,7 +26,7 @@ interface BasicInfoTabProps {
     ageRangeMin: string;
     ageRangeMax: string;
     tags: string;
-    images: File[];
+    images: string[];  // MediaAsset IDs
     imagePreviewUrls: string[];
     // Admin-specific fields
     isApproved: boolean;
@@ -41,8 +45,12 @@ interface BasicInfoTabProps {
   errors: Record<string, string>;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => void;
   onCheckboxChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onImagesChange: (images: File[], previewUrls: string[]) => void;
+  onImagesChange: (assets: MediaAsset[]) => void;
   onRemoveImage: (index: number) => void;
+  showMediaPicker: boolean;
+  onOpenMediaPicker: () => void;
+  onCloseMediaPicker: () => void;
+  selectedImageAssets: MediaAsset[];
 }
 
 const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
@@ -54,7 +62,13 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
   onCheckboxChange,
   onImagesChange,
   onRemoveImage,
+  showMediaPicker,
+  onOpenMediaPicker,
+  onCloseMediaPicker,
+  selectedImageAssets,
 }) => {
+  const [descriptionTab, setDescriptionTab] = useState<'edit' | 'preview'>('edit');
+
   // Find the Platform Affiliate vendor
   const affiliateVendor = vendors.find(v => v.businessName === 'Platform Affiliate');
 
@@ -72,6 +86,17 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
       } as React.ChangeEvent<HTMLSelectElement>;
       onInputChange(syntheticEvent);
     }
+  };
+
+  // Handle description change from TipTapEditor
+  const handleDescriptionChange = (content: string) => {
+    const syntheticEvent = {
+      target: {
+        name: 'description',
+        value: content
+      }
+    } as React.ChangeEvent<HTMLTextAreaElement>;
+    onInputChange(syntheticEvent);
   };
 
   return (
@@ -269,21 +294,67 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
         {errors.title && <p className="mt-1 text-sm text-red-500">{errors.title}</p>}
       </div>
 
-      {/* Description */}
+      {/* Description - Rich Text Editor */}
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
           Description <span className="text-red-500">*</span>
         </label>
-        <textarea
-          id="description"
-          name="description"
-          value={formData.description}
-          onChange={onInputChange}
-          rows={5}
-          className={`w-full px-3 py-2 border ${errors.description ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary`}
-          placeholder="Describe your event in detail"
-        ></textarea>
-        {errors.description && <p className="mt-1 text-sm text-red-500">{errors.description}</p>}
+
+        {/* Tabs for Edit/Preview */}
+        <div className="flex border-b border-gray-200 mb-2">
+          <button
+            type="button"
+            onClick={() => setDescriptionTab('edit')}
+            className={`px-4 py-2 font-medium text-sm ${
+              descriptionTab === 'edit'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => setDescriptionTab('preview')}
+            className={`px-4 py-2 font-medium text-sm ${
+              descriptionTab === 'preview'
+                ? 'border-b-2 border-primary text-primary'
+                : 'text-gray-500 hover:text-gray-700'
+            }`}
+          >
+            Preview
+          </button>
+        </div>
+
+        {/* Editor or Preview */}
+        {descriptionTab === 'edit' ? (
+          <TipTapEditor
+            content={formData.description || ''}
+            onChange={handleDescriptionChange}
+            placeholder="Describe your event in detail... Use the toolbar to format text, add images, videos, and links. You can also insert custom HTML for Google Drive embeds."
+            mediaCategory="event"
+            mediaFolder="events"
+          />
+        ) : (
+          <div
+            className="min-h-[300px] p-4 border border-gray-300 rounded-md bg-gray-50 prose max-w-none"
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(formData.description || '<p class="text-gray-400 italic">Event description preview will appear here...</p>', {
+                ADD_ATTR: ['style', 'class'],
+                ADD_TAGS: ['iframe'],
+                ALLOWED_ATTR: ['style', 'class', 'href', 'src', 'alt', 'title', 'target', 'rel', 'width', 'height', 'id', 'frameborder', 'allow', 'allowfullscreen']
+              })
+            }}
+          />
+        )}
+
+        {errors.description && <p className="mt-2 text-sm text-red-500">{errors.description}</p>}
+
+        {/* Helper text for Google Drive embeds */}
+        <p className="mt-2 text-xs text-gray-500">
+          💡 <strong>Tip:</strong> To embed Google Drive files, use the "Insert Custom HTML" button (📄 icon) in the toolbar.
+          Get the embed code from Google Drive by clicking Share → Get embed code.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -327,6 +398,7 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
             <option value="Event">Event</option>
             <option value="Course">Course</option>
             <option value="Venue">Venue</option>
+            <option value="Workshop">Workshop</option>
           </select>
           {errors.type && <p className="mt-1 text-sm text-red-500">{errors.type}</p>}
         </div>
@@ -409,13 +481,61 @@ const BasicInfoTab: React.FC<BasicInfoTabProps> = ({
       </div>
 
       {/* Event Images */}
-      <ImageUpload
-        images={formData.images}
-        imagePreviewUrls={formData.imagePreviewUrls}
-        onImagesChange={onImagesChange}
-        onRemoveImage={onRemoveImage}
-        error={errors.images}
-        required={true}
+      <div className="mb-6">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Event Images <span className="text-red-500">*</span>
+        </label>
+
+        {/* Image Preview Grid */}
+        {formData.imagePreviewUrls.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-4">
+            {formData.imagePreviewUrls.map((url, index) => (
+              <div key={index} className="relative group">
+                <img
+                  src={url}
+                  alt={`Event ${index + 1}`}
+                  className="h-32 w-full object-cover rounded-lg border-2 border-gray-200"
+                />
+                <button
+                  type="button"
+                  onClick={() => onRemoveImage(index)}
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  ×
+                </button>
+                <div className="absolute bottom-0 left-0 right-0 bg-black bg-opacity-50 text-white text-xs p-1 text-center">
+                  Image {index + 1}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={onOpenMediaPicker}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          {formData.images.length > 0 ? 'Add More Images' : 'Select Images from Library'}
+        </button>
+
+        {errors.images && (
+          <p className="mt-1 text-sm text-red-500">{errors.images}</p>
+        )}
+      </div>
+
+      {/* Media Picker Modal */}
+      <MediaPickerModal
+        isOpen={showMediaPicker}
+        onClose={onCloseMediaPicker}
+        onSelect={(assets) => {
+          onImagesChange(assets);
+          onCloseMediaPicker();
+        }}
+        category="event"
+        folder="events"
+        multiple={true}
+        title="Select Event Images"
       />
     </div>
   );

@@ -77,7 +77,7 @@ const CardTitle = React.forwardRef<HTMLHeadingElement, CardTitleProps>(
     return (
       <Component 
         ref={ref} 
-        className={`text-lg font-semibold leading-none tracking-tight ${className}`} 
+        className={`text-lg font-semibold leading-none text-gray-900 tracking-tight ${className}`} 
         {...props}
       >
         {children}

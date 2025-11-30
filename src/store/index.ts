@@ -22,14 +22,16 @@ import paymentsSlice from './slices/paymentsSlice';
 import ticketsSlice from './slices/ticketsSlice';
 import blogSlice from './slices/blogSlice';
 import registrationsSlice from './slices/registrationsSlice';
+import settingsSlice from './slices/settingsSlice';
+import mediaSlice from './slices/mediaSlice';
 
 // Persist configuration
 const persistConfig = {
   key: 'root',
   storage,
   // Note: auth and cart use custom persist configs below, so exclude them here
-  whitelist: ['favorites', 'ui'], // Only persist these slices
-  blacklist: ['events', 'categories', 'search', 'bookings', 'vendor', 'vendorPayout', 'admin', 'coupons', 'affiliates', 'payments', 'tickets', 'blog', 'registrations'], // Don't persist these (notifications removed - system disabled)
+  whitelist: ['favorites', 'ui', 'settings'], // Only persist these slices
+  blacklist: ['events', 'categories', 'search', 'bookings', 'vendor', 'vendorPayout', 'admin', 'coupons', 'affiliates', 'payments', 'tickets', 'blog', 'registrations', 'media'], // Don't persist these (notifications removed - system disabled)
 };
 
 // Auth persist config (separate for sensitive data)
@@ -70,6 +72,8 @@ const rootReducer = combineReducers({
   tickets: ticketsSlice,
   blog: blogSlice,
   registrations: registrationsSlice,
+  settings: settingsSlice,
+  media: mediaSlice,
 });
 
 // Create persisted reducer
@@ -96,7 +100,7 @@ export const store = configureStore({
         ignoredPaths: ['items.dates'],
       },
     }),
-  devTools: import.meta.env.MODE !== 'production',
+  devTools: import.meta.env.VITE_MODE !== 'production',
 });
 
 // Create persistor
@@ -128,3 +132,4 @@ export * from './slices/paymentsSlice';
 export * from './slices/ticketsSlice';
 export * from './slices/blogSlice';
 export * from './slices/registrationsSlice';
+export * from './slices/settingsSlice';

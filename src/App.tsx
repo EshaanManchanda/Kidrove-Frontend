@@ -72,11 +72,13 @@ const AdminDashboardPage = React.lazy(() => import(/* webpackChunkName: "admin" 
 const AdminUsersPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminUsersPage'));
 const AdminVendorsPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminVendorsPage'));
 const AdminEventsPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminEventsPage'));
-const AdminEditEventPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminEditEventPage'));
+// Temporarily using eager loading to debug import issue
+import AdminEditEventPage from './pages/admin/AdminEditEventPage';
 const AdminVenuesPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminVenuesPage'));
 const CreateVenuePage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/CreateVenuePage'));
 const EditVenuePage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/EditVenuePage'));
 const AdminCategoriesPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminCategoriesPage'));
+const AdminCollectionsPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminCollectionsPage'));
 const AdminOrdersPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminOrdersPage'));
 const AdminPayoutsPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminPayoutsPage'));
 const AdminCommissionsPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminCommissionsPage'));
@@ -88,6 +90,7 @@ const AdminSettingsPage = React.lazy(() => import(/* webpackChunkName: "admin" *
 const EmployeeManagement = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/EmployeeManagement'));
 const AdminAffiliateAnalyticsPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminAffiliateAnalyticsPage'));
 const AdminPartnershipsPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminPartnershipsPage'));
+const AdminMediaPage = React.lazy(() => import(/* webpackChunkName: "admin" */ './pages/admin/AdminMediaPage'));
 
 // Analytics Pages
 const AnalyticsDashboard = React.lazy(() => import(/* webpackChunkName: "analytics" */ './pages/analytics/AnalyticsDashboard'));
@@ -124,11 +127,20 @@ import EmployeeRoute from '@components/auth/EmployeeRoute';
 // Hooks
 import useAuth from '@hooks/useAuth';
 import useLanguage from '@hooks/useLanguage';
+import { useDispatch } from 'react-redux';
+import { fetchSocialSettings } from '@/store/slices/settingsSlice';
+import { AppDispatch } from '@/store';
 
 function AppContent() {
   const location = useLocation();
-  const { loading } = useAuth();
+  const { loading, isInitialized } = useAuth();
   const { currentLanguage } = useLanguage();
+  const dispatch = useDispatch<AppDispatch>();
+
+  // Fetch social settings on app load
+  useEffect(() => {
+    dispatch(fetchSocialSettings());
+  }, [dispatch]);
 
   // Set document direction based on language
   useEffect(() => {
@@ -137,7 +149,8 @@ function AppContent() {
   }, [currentLanguage]);
 
   // Show loading spinner while checking authentication
-  if (loading) {
+  // Wait for auth initialization to complete before rendering routes
+  if (!isInitialized || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <LoadingSpinner size="large" />
@@ -447,6 +460,18 @@ function AppContent() {
               </ProtectedRoute>
             } />
 
+            {/* Auth Pages (with Layout) */}
+            <Route path="login" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <LoginPage />
+              </Suspense>
+            } />
+            <Route path="register" element={
+              <Suspense fallback={<LoadingSpinner />}>
+                <RegisterPage />
+              </Suspense>
+            } />
+
             {/* Error Pages */}
             <Route path="500" element={
               <Suspense fallback={<LoadingSpinner />}>
@@ -690,16 +715,12 @@ function AppContent() {
             } />
             <Route path="events/create" element={
               <AdminRoute>
-                <Suspense fallback={<LoadingSpinner />}>
-                  <AdminEditEventPage />
-                </Suspense>
+                <AdminEditEventPage />
               </AdminRoute>
             } />
             <Route path="events/:id/edit" element={
               <AdminRoute>
-                <Suspense fallback={<LoadingSpinner />}>
-                  <AdminEditEventPage />
-                </Suspense>
+                <AdminEditEventPage />
               </AdminRoute>
             } />
             <Route path="events/:eventId/registration/builder" element={
@@ -741,7 +762,16 @@ function AppContent() {
                 </Suspense>
               </AdminRoute>
             } />
-            
+
+            {/* Collection Management */}
+            <Route path="collections" element={
+              <AdminRoute>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <AdminCollectionsPage />
+                </Suspense>
+              </AdminRoute>
+            } />
+
             {/* Order Management */}
             <Route path="orders" element={
               <AdminRoute>
@@ -783,6 +813,15 @@ function AppContent() {
               <AdminRoute>
                 <Suspense fallback={<LoadingSpinner />}>
                   <AdminBlogCategoriesPage />
+                </Suspense>
+              </AdminRoute>
+            } />
+
+            {/* Media Library */}
+            <Route path="media" element={
+              <AdminRoute>
+                <Suspense fallback={<LoadingSpinner />}>
+                  <AdminMediaPage />
                 </Suspense>
               </AdminRoute>
             } />
@@ -855,18 +894,8 @@ function AppContent() {
               </AdminRoute>
             } />
           </Route>
-          
+
           {/* Auth Routes (without layout) */}
-          <Route path="login" element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <LoginPage />
-            </Suspense>
-          } />
-          <Route path="register" element={
-            <Suspense fallback={<LoadingSpinner />}>
-              <RegisterPage />
-            </Suspense>
-          } />
           <Route path="forgot-password" element={
             <Suspense fallback={<LoadingSpinner />}>
               <ForgotPasswordPage />
